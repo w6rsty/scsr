@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/event/handler.hpp"
+
 struct SDL_Window;
 struct SDL_Renderer;
 struct SDL_Texture;
@@ -18,6 +20,7 @@ private:
     SDL_Window* m_Handle;
     SDL_Renderer* m_Renderer;
     SDL_Texture* m_Texture;
+    EventHandler m_EventHandler;
 };
 
 }

@@ -1,14 +1,48 @@
 #pragma once
 
-#include "ecs/entity.hpp"
 #include "core/type.hpp"
-#include "entity.hpp"
 
+#include <atomic>
 #include <functional>
 #include <unordered_map>
 
 namespace scsr
 {
+
+/// Creates a unique index for singleton instances
+/// T is a type in Category 
+template <typename Category>
+class IndexGenerator
+{
+public:
+    static IndexGenerator& Instance()
+    {
+        static IndexGenerator instance;
+        return instance;
+    }
+
+    template <typename T>
+    usize Generate()
+    {
+        static usize index = m_Next.fetch_add(1, std::memory_order_relaxed);
+        return index;
+    }
+private:
+    IndexGenerator() : m_Next(0) {}
+
+    IndexGenerator(const IndexGenerator&) = delete;
+    IndexGenerator& operator=(const IndexGenerator&) = delete;
+
+    std::atomic<u32> m_Next;
+};
+
+template <typename Category, typename T>
+usize GenerateIndex()
+{
+    return IndexGenerator<Category>::Instance().template Generate<T>();
+}
+
+
 
 struct ResourceData
 {
@@ -43,7 +77,7 @@ public:
         
     }
 private:
-    std::unordered_map<ComponentID, ResourceData> m_Resources;
+    std::unordered_map<u32, ResourceData> m_Resources;
 };
 
 struct Storage

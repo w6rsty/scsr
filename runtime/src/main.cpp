@@ -1,30 +1,20 @@
 #include "core/core.hpp"
-#include "lua/script.hpp"
-#include "lua/binding.hpp"
 
 using namespace scsr;
 
 int runtime(int argc, char* argv[])
 {
-    // LOG_INFO("Runtime started");
+    LOG_RT_INFO("Runtime started");
 
-    const char* startFile = "runtime/src/script/start.lua";
+    Window wd;
 
-    auto start = ReadFile(startFile);
-
-    if (start.has_value())
+    bool status = true;
+    while (status)
     {
-        LuaScript script;
-        script.RegisterFn("CreateWindow", binding::CreateWindow);
-        script.AddMetaMethod("WindowMetaTable", "__gc", binding::DestroyWindow);
-        script.RegisterFn("WindowUpdate", binding::WindowUpdate);
-        script.Load(start.value());
-    }
-    else
-    {
-        // LOG_ERROR("Failed to read {}", startFile);
-        return 1;
-    }
+        status = wd.OnUpdate();
+        
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));
+    }  
     
     return 0;
 }

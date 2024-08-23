@@ -1,11 +1,13 @@
 #pragma once
 
+#include "core/type.hpp"
 #ifdef SCSR_LOGGING
 
 #include <ctime>
 #include <chrono>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <mutex>
 
 #include "fmt/core.h"
@@ -37,8 +39,8 @@ static const std::string LevelToString(Level level)
 class Logger
 {
 public:
-    Logger(const std::string& name = "Default", Level level = Level::None)
-        : m_Level(level)
+    Logger(const std::string& name = "Default", Level filter = Level::None)
+        : m_FilterLevel(filter)
     {
         auto now = std::chrono::system_clock::now();
         auto time = std::chrono::system_clock::to_time_t(now);
@@ -47,17 +49,17 @@ public:
 
         fmt::println(
             "{:02}:{:02}:{:02} [{}] Logger [{}] created",
-            tm.tm_hour, tm.tm_min, tm.tm_sec, LevelToString(level), 
+            tm.tm_hour, tm.tm_min, tm.tm_sec, LevelToString(Level::Info), 
             name
         );
     }
 
-    void SetLevel(Level level) { m_Level = level; }
-    Level GetLevel() const { return m_Level; }
+    void SetFilterLevel(Level level) { m_FilterLevel = level; }
+    Level GetFilterLevel() const { return m_FilterLevel; }
 
     template <typename... Args>
     void Log(Level level, std::string_view file, int line,  fmt::format_string<Args...> format, Args&&... args) {
-        if (level < m_Level) {
+        if (level < m_FilterLevel) {
             return;
         }
         
@@ -76,28 +78,70 @@ public:
     }
 
 private:
-    Level m_Level;
+    Level m_FilterLevel;
     std::mutex m_Mutex;
 };
 
-static Logger s_Logger;
+class LoggerManager
+{
+public:
+    static LoggerManager& Instance()
+    {
+        static Scp<LoggerManager> instance;
+        if (!instance)
+        {
+            instance.reset(new LoggerManager());
+        }
+        return *instance;
+    }
 
-}
+    Logger& Get(const std::string& name)
+    {
+        auto it = m_Loggers.find(name);
+        if (it == m_Loggers.end())
+        {
+            m_Loggers[name].reset(new Logger(name));
+            it = m_Loggers.find(name);
+        }
 
-#endif
+        return *(it->second);
+    }
+private:
+    std::unordered_map<std::string, Scp<Logger>> m_Loggers;
+};
 
 #ifdef SCSR_LOGGING
-    #define DEFAULT_LOGGER ::scsr::Logger s_Logger
+    #define LOGGER ::scsr::LoggerManager::Instance().Get("engine")
 
-    #define LOG_DEBUG(...) ::scsr::s_Logger.Log(::scsr::Level::Debug, __FILE__, __LINE__, __VA_ARGS__)
-    #define LOG_INFO( ...) ::scsr::s_Logger.Log(::scsr::Level::Info,  __FILE__, __LINE__, __VA_ARGS__)
-    #define LOG_WARN( ...) ::scsr::s_Logger.Log(::scsr::Level::Warn,  __FILE__, __LINE__, __VA_ARGS__)
-    #define LOG_ERROR(...) ::scsr::s_Logger.Log(::scsr::Level::Error, __FILE__, __LINE__, __VA_ARGS__)
+    #define LOG_DEBUG(...) LOGGER.Log(::scsr::Level::Debug, __FILE__, __LINE__, __VA_ARGS__)
+    #define LOG_INFO( ...) LOGGER.Log(::scsr::Level::Info,  __FILE__, __LINE__, __VA_ARGS__)
+    #define LOG_WARN( ...) LOGGER.Log(::scsr::Level::Warn,  __FILE__, __LINE__, __VA_ARGS__)
+    #define LOG_ERROR(...) LOGGER.Log(::scsr::Level::Error, __FILE__, __LINE__, __VA_ARGS__)
 #else
-    #define DEFAULT_LOGGER
+    #define LOGGER
 
     #define LOG_DEBUG(...)
     #define LOG_INFO( ...)
     #define LOG_WARN( ...)
     #define LOG_ERROR(...)
+#endif
+
+}
+
+#ifdef SCSR_LOGGING
+    #define LOGGER_RT ::scsr::LoggerManager::Instance().Get("runtime")
+
+    #define LOG_RT_DEBUG(...) LOGGER_RT.Log(::scsr::Level::Debug, __FILE__, __LINE__, __VA_ARGS__)
+    #define LOG_RT_INFO( ...) LOGGER_RT.Log(::scsr::Level::Info,  __FILE__, __LINE__, __VA_ARGS__)
+    #define LOG_RT_WARN( ...) LOGGER_RT.Log(::scsr::Level::Warn,  __FILE__, __LINE__, __VA_ARGS__)
+    #define LOG_RT_ERROR(...) LOGGER_RT.Log(::scsr::Level::Error, __FILE__, __LINE__, __VA_ARGS__)
+#else
+    #define LOGGER_RT
+
+    #define LOG_RT_DEBUG(...)
+    #define LOG_RT_INFO( ...)
+    #define LOG_RT_WARN( ...)
+    #define LOG_RT_ERROR(...)
+#endif
+
 #endif
