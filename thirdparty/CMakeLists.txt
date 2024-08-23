@@ -1,0 +1,4 @@
+add_subdirectory(lua-5.4.7)
+add_subdirectory(fmt)
+add_subdirectory(SDL2)
+add_subdirectory(STB)
