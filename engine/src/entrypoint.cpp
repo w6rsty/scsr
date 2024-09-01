@@ -2,5 +2,7 @@ extern int runtime(int argc, char* argv[]);
 
 int main(int argc, char* argv[])
 {
-    return runtime(argc, argv);
+    runtime(argc, argv);
+    
+    return 0;
 }

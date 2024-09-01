@@ -3,60 +3,72 @@
 namespace scsr
 {
 
-std::string EventFormat(const Event& event)
+std::string FormatEvent(const Event& event)
 {
     std::string format = "Unformatted event";
 
     switch (event.category)
     {
-        case EventCategory::Application:
+        case EventCategory::ECApplication:
         {
-            format = "Application event";
+            format = "[Application]";
             switch (event.application.signal)
             {
                 case ApplicationSignal::Quit:
                     format += " (Quit)";
                     break;
-                case ApplicationSignal::Hidden:
-                    format += " (Hidden)";
-                    break;
-                case ApplicationSignal::Enter:
-                    format += " (Enter)";
-                    break;
-                case ApplicationSignal::Leave:
-                    format += " (Leave)";
-                    break;
-                case ApplicationSignal::FocusGained:
-                    format += " (Focus gained)";
-                    break;
-                case ApplicationSignal::FocusLost:
-                    format += " (Focus lost)";
-                    break;
             }
             break;
         }
-        case EventCategory::Window:
+        case EventCategory::ECWindow:
         {
-            format = "Window event";
+            format = "[Window]";
+            format += " windowID: " + std::to_string(event.window.windowID);
             switch (event.window.signal)
             {
+                case WindowSignal::Shown:
+                    format += " (Shown)";
+                    break;
+                case WindowSignal::Hidden:
+                    format += " (Hidden)";
+                    break;
+                case WindowSignal::Moved:
+                    format += " (Moved)";
+                    format += " x: " + std::to_string(event.window.x);
+                    format += " y: " + std::to_string(event.window.y);
+                    break;
+                case WindowSignal::Resized:
+                    format += " (Resized)";
+                    format += " x: " + std::to_string(event.window.x);
+                    format += " y: " + std::to_string(event.window.y);
+                    break;
+                case WindowSignal::Minimized:
+                    format += " (Minimized)";
+                    break;
+                case WindowSignal::Maximized:
+                    format += " (Maximized)";
+                    break;
+                case WindowSignal::Enter:
+                    format += " (Enter)";
+                    break;
+                case WindowSignal::Leave:
+                    format += " (Leave)";
+                    break;
+                case WindowSignal::FocusGained:
+                    format += " (FocusGained)";
+                    break;
+                case WindowSignal::FocusLost:
+                    format += " (FocusLost)";
+                    break;
                 case WindowSignal::Close:
                     format += " (Close)";
                     break;
-                case WindowSignal::Move:
-                    format += " (Move)";
-                    break;
-                case WindowSignal::Resize:
-                    format += " (Resize)";
-                    break;
             }
-            format += " x: " + std::to_string(event.window.x);
-            format += " y: " + std::to_string(event.window.y);
             break;
         }
-        case EventCategory::Keyboard:
+        case EventCategory::ECKeyboard:
         {
-            format = "Keyboard event";
+            format = "[Keyboard]";
             switch (event.keyboard.state)
             {
                 case ButtonState::Pressed:
@@ -70,18 +82,18 @@ std::string EventFormat(const Event& event)
             format += " repeat: " + std::to_string(event.keyboard.repeat);
             break;
         }
-        case EventCategory::MouseMotion:
+        case EventCategory::ECMouseMotion:
         {
-            format = "Mouse motion event";
+            format = "[Mouse motion]";
             format += " x: " + std::to_string(event.mouseMotion.x);
             format += " y: " + std::to_string(event.mouseMotion.y);
             format += " dx: " + std::to_string(event.mouseMotion.dx);
             format += " dy: " + std::to_string(event.mouseMotion.dy);
             break;
         }
-        case EventCategory::MouseButton:
+        case EventCategory::ECMouseButton:
         {
-            format = "Mouse button event";
+            format = "[Mouse button]";
             switch (event.mouseButton.state)
             {
                 case ButtonState::Pressed:
@@ -95,10 +107,11 @@ std::string EventFormat(const Event& event)
             format += " clicks: " + std::to_string(event.mouseButton.clicks);
             break;
         }
-        case EventCategory::MouseWheel:
+        case EventCategory::ECMouseWheel:
         {
-            format = "Mouse wheel event";
-            format += " offset: " + std::to_string(event.mouseWheel.offset);
+            format = "[Mouse wheel]";
+            format += " x: " + std::to_string(event.mouseWheel.x);
+            format += " y: " + std::to_string(event.mouseWheel.y);
             break;
         }
         default:

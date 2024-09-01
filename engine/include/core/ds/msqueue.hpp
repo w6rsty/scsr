@@ -1,7 +1,7 @@
 #pragma once
 
+#include "core/type.hpp"
 #include <atomic>
-#include <optional>
 
 namespace scsr
 {
@@ -14,74 +14,66 @@ class MSQueue
 public:
     MSQueue()
     {
-        Node* dumy = new Node();
+        Ref<Node> dumy = make_ref<Node>();
         m_Head.store(dumy);
         m_Tail.store(dumy);
     }
 
-    ~MSQueue()
-    {
-        while (Node* node = m_Head.load())
-        {
-            m_Head.store(node->next.load());
-            delete node;
-        }
-    }
+    ~MSQueue() = default;
 
     void Enqueue(T val)
     {
-        Node* newNode = new Node(val);
-        Node* oldTail;
+        Ref<Node> newNode = make_ref<Node>(val);
+        Ref<Node> oldTail;
 
         while (true)
         {
             oldTail = m_Tail.load();
-            Node* next = oldTail->next.load();
+            Ref<Node> next = oldTail->next.load();
 
             if (oldTail == m_Tail.load())
             {
                 if (next == nullptr)
                 {
-                    if (oldTail->next.compare_exchange_weak(next, newNode))
+                    if (oldTail->next.compare_exchange_strong(next, newNode))
                     {
+                        m_Tail.compare_exchange_strong(oldTail, newNode);
                         break;
                     }
                 }
                 else
                 {
-                    m_Tail.compare_exchange_weak(oldTail, next);
+                    m_Tail.compare_exchange_strong(oldTail, next);
                 }
             }
         }
 
-        m_Tail.compare_exchange_weak(oldTail, newNode);
     }
 
-    std::optional<T> Dequeue()
+    bool Dequeue(T& elem)
     {
-        Node* oldHead;
-        T val;
+        Ref<Node> oldHead;
 
         while (true)
         {
             oldHead = m_Head.load();
-            Node* oldTail = m_Tail.load();
-            Node* next = oldHead->next.load();
+            auto oldTail = m_Tail.load();
+            auto next = oldHead->next.load();
 
             if (oldHead == m_Head.load())
             {
                 if (oldHead == oldTail)
                 {
-                    if (next == nullptr)
+                    if (!next)
                     {
-                        return std::nullopt;
+                        return false;
                     }
-                    m_Tail.compare_exchange_weak(oldTail, next);
+                    m_Tail.compare_exchange_strong(oldTail, next);
                 }
                 else
                 {
-                    val = next->data;
-                    if (m_Head.compare_exchange_weak(oldHead, next))
+                    elem = next->data;
+                    if (m_Head.compare_exchange_strong(oldHead, next))
                     {
                         break;
                     }
@@ -89,21 +81,23 @@ public:
             }
         }
 
-        delete oldHead;
-        return std::make_optional(val);
+        return true;
     }
 private:
-    struct Node
+    struct alignas(64) Node
     {
         T data;
-        std::atomic<Node*> next;
+        std::atomic<Ref<Node>> next;
 
-        Node() : next(nullptr) {}
+        Node() : data(), next(nullptr) {}
         Node(T val) : data(val), next(nullptr) {}
     };
-    
-    std::atomic<Node*> m_Head;
-    std::atomic<Node*> m_Tail;
+
+    MSQueue(const MSQueue&) = delete;
+    MSQueue& operator=(const MSQueue&) = delete;
+
+    std::atomic<Ref<Node>> m_Head;
+    std::atomic<Ref<Node>> m_Tail;
 };
 
 }

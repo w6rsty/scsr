@@ -3,7 +3,6 @@
 #include "core/type.hpp"
 #ifdef SCSR_LOGGING
 
-#include <ctime>
 #include <chrono>
 #include <string>
 #include <string_view>
@@ -36,22 +35,20 @@ static const std::string LevelToString(Level level)
     }
 }
 
+static constexpr std::string_view s_TimeFormat = "{:%FT%T}";
+
 class Logger
 {
 public:
-    Logger(const std::string& name = "Default", Level filter = Level::None)
-        : m_FilterLevel(filter)
+    Logger(const std::string& name = "Default", Level filter = Level::None) :
+        m_FilterLevel(filter)
     {
         auto now = std::chrono::system_clock::now();
-        auto time = std::chrono::system_clock::to_time_t(now);
-        std::tm tm;
-        localtime_s(&tm, &time);
+        auto tz = std::chrono::current_zone();
+        std::chrono::zoned_time local_time{tz, now};
 
-        fmt::println(
-            "{:02}:{:02}:{:02} [{}] Logger [{}] created",
-            tm.tm_hour, tm.tm_min, tm.tm_sec, LevelToString(Level::Info), 
-            name
-        );
+        fmt::println("{} [{}] Logger [{}] created",
+            std::format(s_TimeFormat, local_time), LevelToString(Level::Info), name);
     }
 
     void SetFilterLevel(Level level) { m_FilterLevel = level; }
@@ -66,20 +63,17 @@ public:
         std::lock_guard<std::mutex> lock(m_Mutex);
 
         auto now = std::chrono::system_clock::now();
-        auto time = std::chrono::system_clock::to_time_t(now);
-        std::tm tm;
-        localtime_s(&tm, &time);
+        auto tz = std::chrono::current_zone();
+        std::chrono::zoned_time local_time{tz, now};
 
-        fmt::print(
-            "{:02}:{:02}:{:02} [{}] {}:{}: ",
-            tm.tm_hour, tm.tm_min, tm.tm_sec, LevelToString(level), file, line
-        );
+        fmt::print("{} [{}] {}:{}: ",
+            std::format(s_TimeFormat, local_time), LevelToString(level), file, line);
         fmt::println(format, std::forward<Args>(args)...);
     }
 
 private:
-    Level m_FilterLevel;
     std::mutex m_Mutex;
+    Level m_FilterLevel;
 };
 
 class LoggerManager

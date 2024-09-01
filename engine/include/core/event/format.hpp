@@ -7,6 +7,6 @@
 namespace scsr
 {
 
-std::string EventFormat(const Event& event);
+std::string FormatEvent(const Event& event);
 
 }

@@ -2,19 +2,21 @@
 
 using namespace scsr;
 
+void test(Storage& storagae)
+{
+    storagae.Get<Window>().OnUpdate();
+}
 int runtime(int argc, char* argv[])
 {
-    LOG_RT_INFO("Runtime started");
 
-    Window wd;
+    World world;
 
-    bool status = true;
-    while (status)
-    {
-        status = wd.OnUpdate();
-        
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));
-    }  
-    
+    WindowProp prop { .Title = "scsr", .Width = 600, .Height = 600 };
+
+    world
+        .InitObject(Window {prop})
+        .AddSystem(test)
+        .Run();
+
     return 0;
 }

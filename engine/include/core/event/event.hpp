@@ -5,43 +5,36 @@
 namespace scsr
 {
 
-/*
-| 16 bits   | 32 bits   | 16 bits   | 128 bits   |
-| Category  | Type      | Flags     | Data       |
-| bitmask   | index     | bitmask   | userdata   |
-*/
-
-#define EVENT_CATEGORY_MASK 0xFFFF000000000000
-#define EVENT_TYPE_MASK     0x0000FFFFFFFF0000
-#define EVENT_FLAGS_MASK    0x000000000000FFFF
-
-
-enum class EventCategory : u16
+enum EventCategory : u16
 {
-    None = 0,
-    Application         = BIT(0),
-    Window              = BIT(1),
-    Keyboard            = BIT(2),
-    MouseMotion         = BIT(3),
-    MouseButton         = BIT(4),
-    MouseWheel          = BIT(5),
+    ECNone = 0,
+    ECApplication         = BIT(0),
+    ECWindow              = BIT(1),
+    ECKeyboard            = BIT(2),
+    ECMouseMotion         = BIT(3),
+    ECMouseButton         = BIT(4),
+    ECMouseWheel          = BIT(5),
+    ECALL                 = 0xFFFF
 };
 
 enum class ApplicationSignal : u32
 {
     Quit = 0,
-    Hidden,
-    Enter,
-    Leave,
-    FocusGained,
-    FocusLost,
 };
 
 enum class WindowSignal : u32
 {
-    Close = 0,
-    Move,
-    Resize,
+    Shown = 0,
+    Hidden,
+    Moved,
+    Resized,
+    Minimized,
+    Maximized,
+    Enter,
+    Leave,
+    FocusGained,
+    FocusLost,
+    Close,
 };
 
 enum class ButtonState : u32
@@ -65,14 +58,15 @@ enum class MouseButton : u32
 /// Application and Window
 struct ApplicationEvent
 {
-    EventCategory category = EventCategory::Application;
+    EventCategory category = EventCategory::ECApplication;
     ApplicationSignal signal;
 };
 
 struct WindowEvent
 {
-    EventCategory category = EventCategory::Window;
+    EventCategory category = EventCategory::ECWindow;
     WindowSignal signal;
+    u8 windowID;
     i32 x;
     i32 y;
 };
@@ -80,7 +74,7 @@ struct WindowEvent
 /// Keyboard
 struct KeyboardEvent
 {
-    EventCategory category = EventCategory::Keyboard;
+    EventCategory category = EventCategory::ECKeyboard;
     u32 keyCode;
     ButtonState state;
     u32 repeat = 0; // repeat if non-zero
@@ -89,7 +83,7 @@ struct KeyboardEvent
 /// Mouse move 
 struct MouseMotionEvent
 {
-    EventCategory category = EventCategory::MouseMotion;
+    EventCategory category = EventCategory::ECMouseMotion;
     // logic position
     i32 x;
     i32 y;
@@ -101,7 +95,7 @@ struct MouseMotionEvent
 /// Mouse button
 struct MouseButtonEvent
 {
-    EventCategory category = EventCategory::MouseButton;
+    EventCategory category = EventCategory::ECMouseButton;
     MouseButton button;
     ButtonState state;
     u32 clicks;
@@ -110,8 +104,9 @@ struct MouseButtonEvent
 /// Mouse wheel scroll
 struct MouseWheelEvent
 {
-    EventCategory category = EventCategory::MouseWheel;
-    i32 offset;
+    EventCategory category = EventCategory::ECMouseWheel;
+    i32 x;
+    i32 y;
 };
 
 struct Event
@@ -129,7 +124,7 @@ struct Event
         u8 _padding[20]; // force to use 20 bytes
     };
 
-    Event() : category(EventCategory::None) {}
+    Event() : category(EventCategory::ECNone) {}
 };
 
 }
