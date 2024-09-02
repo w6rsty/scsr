@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/type.hpp" // IWYU pragma: keep
+#include "core/type.hpp"
 
 #include <limits>
 #include <cmath>
@@ -8,11 +8,16 @@
 namespace scsr
 {
 
-constexpr float F32MIN = std::numeric_limits<float>::min();
-constexpr float F32MAX = std::numeric_limits<float>::max();
-constexpr float F32INF = std::numeric_limits<float>::infinity();
-constexpr float F32NAN = std::numeric_limits<float>::quiet_NaN();
-constexpr float F32EPSILON = std::numeric_limits<float>::epsilon();
+constexpr f32 F32MIN = std::numeric_limits<f32>::min();
+constexpr f32 F32MAX = std::numeric_limits<f32>::max();
+constexpr f32 F32INF = std::numeric_limits<f32>::infinity();
+constexpr f32 F32NAN = std::numeric_limits<f32>::quiet_NaN();
+constexpr f32 F32EPSILON = std::numeric_limits<f32>::epsilon();
+
+constexpr f32 PI = 3.14159265359f;
+
+constexpr f32 Radians(f32 degrees) { return degrees * PI / 180.0f; }
+constexpr f32 Degrees(f32 radians) { return radians * 180.0f / PI; }
 
 template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
 bool IsFinite(T value) { return std::isfinite(value); }
@@ -35,6 +40,5 @@ inline T Min(T a, T b) { return a = a < b ? a : b; }
 
 template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
 inline T Clamp(T value, T min, T max) { return value < min ? min : value > max ? max : value; }
-
 
 }

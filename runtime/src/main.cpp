@@ -2,6 +2,8 @@
 
 using namespace scsr;
 
+struct Foo {};
+
 void test(Storage& storagae)
 {
     storagae.Get<Window>().OnUpdate();
@@ -15,6 +17,7 @@ int runtime(int argc, char* argv[])
 
     world
         .InitObject(Window {prop})
+        .InitObject(Foo {})
         .AddSystem(test)
         .Run();
 

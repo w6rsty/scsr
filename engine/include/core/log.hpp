@@ -3,11 +3,11 @@
 #include "core/type.hpp"
 #ifdef SCSR_LOGGING
 
+#include <map>
+#include <mutex>
 #include <chrono>
 #include <string>
 #include <string_view>
-#include <unordered_map>
-#include <mutex>
 
 #include "fmt/core.h"
 
@@ -31,7 +31,7 @@ static const std::string LevelToString(Level level)
         case Level::Info:   return "Info";
         case Level::Warn:   return "Warn";
         case Level::Error:  return "Error";
-        default:   return "None";
+        default:            return "None";
     }
 }
 
@@ -91,17 +91,17 @@ public:
 
     Logger& Get(const std::string& name)
     {
-        auto it = m_Loggers.find(name);
+        StringHash hash = StrToHash(name);
+        auto it = m_Loggers.find(hash);
         if (it == m_Loggers.end())
         {
-            m_Loggers[name].reset(new Logger(name));
-            it = m_Loggers.find(name);
+            it = m_Loggers.emplace(hash, make_scp<Logger>(name)).first;
         }
 
         return *(it->second);
     }
 private:
-    std::unordered_map<std::string, Scp<Logger>> m_Loggers;
+    std::map<StringHash, Scp<Logger>> m_Loggers;
 };
 
 #ifdef SCSR_LOGGING

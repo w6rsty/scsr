@@ -92,6 +92,9 @@ static NormalSystemForm Convert(Func&& func)
 
 struct Storage
 {
+    Storage() {
+        LOG_INFO("Storage created");
+    }
     /// @brief Register object by static type
     /// @param object Object to register
     template <typename T>

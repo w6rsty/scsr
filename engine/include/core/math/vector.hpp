@@ -13,12 +13,7 @@ struct Vec2
 {
     union
     {
-        struct
-        {
-            f32 x;
-            f32 y;
-        };
-
+        struct { f32 x, y; };
         f32 data[2];
     };
 
@@ -43,12 +38,15 @@ struct Vec2
     f32 ElementMax() const { return scsr::Max(x, y); }
     f32 ElementMin() const { return scsr::Min(x, y); }
     bool IsFinite() const { return scsr::IsFinite(x) && scsr::IsFinite(y); }
+    bool IsZero() const { return scsr::Equal(x, 0.0f) && scsr::Equal(y, 0.0f); }
+    bool IsIdentity() const { return scsr::Equal(x, 1.0f) && scsr::Equal(y, 1.0f); }
+    bool IsNormalized() const { return scsr::Equal(LengthSquared(), 1.0f); }
 
     Vec2 operator + (const Vec2& other) const { return Vec2(x + other.x, y + other.y); }
     Vec2 operator - (const Vec2& other) const { return Vec2(x - other.x, y - other.y); }
     Vec2 operator * (f32 scalar) const { return Vec2(x * scalar, y * scalar); }
     Vec2 operator / (f32 scalar) const { return Vec2(x / scalar, y / scalar); }
-
+    Vec2 operator - () const { return Vec2(-x, -y); }
     Vec2& operator += (const Vec2& other) { x += other.x; y += other.y; return *this; }
     Vec2& operator -= (const Vec2& other) { x -= other.x; y -= other.y; return *this; }
     Vec2& operator *= (f32 scalar) { x *= scalar; y *= scalar; return *this; }
@@ -76,7 +74,7 @@ struct Vec2
 
 inline f32 Length(const Vec2& v) { return v.Length(); }
 inline f32 LengthSquared(const Vec2& v) { return v.LengthSquared(); }
-inline Vec2 Normalize(const Vec2& v) { return v.Normalized(); }
+inline Vec2 Normalized(const Vec2& v) { return v.Normalized(); }
 inline Vec2 Abs(const Vec2& v) { return v.Abs(); }
 inline bool Equal(const Vec2& a, const Vec2& b) { return a.Eq(b); }
 inline bool NotEqual(const Vec2& a, const Vec2& b) { return a.Neq(b); }
@@ -93,13 +91,7 @@ struct Vec3
 {
     union
     {
-        struct
-        {
-            f32 x;
-            f32 y;
-            f32 z;
-        };
-
+        struct { f32 x, y, z; };
         f32 data[3];
     };
 
@@ -130,12 +122,15 @@ struct Vec3
     f32 ElementMax() const { return scsr::Max(x, scsr::Max(y, z)); }
     f32 ElementMin() const { return scsr::Min(x, scsr::Min(y, z)); }
     bool IsFinite() const { return scsr::IsFinite(x) && scsr::IsFinite(y) && scsr::IsFinite(z); }
+    bool IsZero() const { return scsr::Equal(x, 0.0f) && scsr::Equal(y, 0.0f) && scsr::Equal(z, 0.0f); }
+    bool IsIdentity() const { return scsr::Equal(x, 1.0f) && scsr::Equal(y, 1.0f) && scsr::Equal(z, 1.0f); }
+    bool IsNormalized() const { return scsr::Equal(LengthSquared(), 1.0f); }
 
     Vec3 operator + (const Vec3& other) const { return Vec3(x + other.x, y + other.y, z + other.z); }
     Vec3 operator - (const Vec3& other) const { return Vec3(x - other.x, y - other.y, z - other.z); }
     Vec3 operator * (f32 scalar) const { return Vec3(x * scalar, y * scalar, z * scalar); }
     Vec3 operator / (f32 scalar) const { return Vec3(x / scalar, y / scalar, z / scalar); }
-
+    Vec3 operator - () const { return Vec3(-x, -y, -z); }
     Vec3& operator += (const Vec3& other) { x += other.x; y += other.y; z += other.z; return *this; }
     Vec3& operator -= (const Vec3& other) { x -= other.x; y -= other.y; z -= other.z; return *this; }
     Vec3& operator *= (f32 scalar) { x *= scalar; y *= scalar; z *= scalar; return *this; }
@@ -164,7 +159,7 @@ struct Vec3
 
 inline f32 Length(const Vec3& v) { return v.Length(); }
 inline f32 LengthSquared(const Vec3& v) { return v.LengthSquared(); }
-inline Vec3 Normalize(const Vec3& v) { return v.Normalized(); }
+inline Vec3 Normalized(const Vec3& v) { return v.Normalized(); }
 inline Vec3 Abs(const Vec3& v) { return v.Abs(); }
 inline bool Equal(const Vec3& a, const Vec3& b) { return a.Eq(b); }
 inline bool NotEqual(const Vec3& a, const Vec3& b) { return a.Neq(b); }
@@ -182,14 +177,7 @@ struct Vec4
 {
     union
     {
-        struct
-        {
-            f32 x;
-            f32 y;
-            f32 z;
-            f32 w;
-        };
-
+        struct { f32 x, y, z, w; };
         f32 data[4];
     };
 
@@ -200,10 +188,14 @@ struct Vec4
     Vec4(const Vec2& v, const Vec2& u) : x(v.x), y(v.y), z(u.x), w(u.y) {}
     Vec4(const Vec3& v3, f32 w) : x(v3.x), y(v3.y), z(v3.z), w(w) {}
 
+    Vec3 Trancate() const { return Vec3(x, y, z); }
     std::span<f32> xyz() { return std::span<f32>(data, 3); }
     std::span<f32> xy() { return std::span<f32>(data, 2); }
     std::span<f32> zw() { return std::span<f32>(data + 2, 2); }
     
+    f32 LengthSquared() const { return x * x + y * y + z * z + w * w; }
+    f32 Length() const { return std::sqrt(LengthSquared()); }
+    void Normalize() { *this /= Length(); }
     Vec4 Abs() const { return Vec4(scsr::Abs(x), scsr::Abs(y), scsr::Abs(z), scsr::Abs(w)); }
 
     bool Eq(const Vec4& other) const { return scsr::Equal(x, other.x) && scsr::Equal(y, other.y) && scsr::Equal(z, other.z) && scsr::Equal(w, other.w); }
@@ -213,12 +205,15 @@ struct Vec4
     f32 ElementMax() const { return scsr::Max(x, scsr::Max(y, scsr::Max(z, w))); }
     f32 ElementMin() const { return scsr::Min(x, scsr::Min(y, scsr::Min(z, w))); }
     bool IsFinite() const { return scsr::IsFinite(x) && scsr::IsFinite(y) && scsr::IsFinite(z) && scsr::IsFinite(w); }
+    bool IsZero() const { return scsr::Equal(x, 0.0f) && scsr::Equal(y, 0.0f) && scsr::Equal(z, 0.0f) && scsr::Equal(w, 0.0f); }
+    bool IsIdentity() const { return scsr::Equal(x, 1.0f) && scsr::Equal(y, 1.0f) && scsr::Equal(z, 1.0f) && scsr::Equal(w, 1.0f); }
+    bool IsNormalized() const { return scsr::Equal(LengthSquared(), 1.0f); }
     
     Vec4 operator + (const Vec4& other) const { return Vec4(x + other.x, y + other.y, z + other.z, w + other.w); }
     Vec4 operator - (const Vec4& other) const { return Vec4(x - other.x, y - other.y, z - other.z, w - other.w); }
     Vec4 operator * (f32 scalar) const { return Vec4(x * scalar, y * scalar, z * scalar, w * scalar); }
     Vec4 operator / (f32 scalar) const { return Vec4(x / scalar, y / scalar, z / scalar, w / scalar); }
-
+    Vec4 operator - () const { return Vec4(-x, -y, -z, -w); }
     Vec4& operator += (const Vec4& other) { x += other.x; y += other.y; z += other.z; w += other.w; return *this; }
     Vec4& operator -= (const Vec4& other) { x -= other.x; y -= other.y; z -= other.z; w -= other.w; return *this; }
     Vec4& operator *= (f32 scalar) { x *= scalar; y *= scalar; z *= scalar; w *= scalar; return *this; }

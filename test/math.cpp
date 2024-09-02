@@ -1,24 +1,43 @@
-#include "core/math/math.hpp"
 #include "core/core.hpp"
-
-#include <iostream>
 
 using namespace scsr;
 
 int main() {
-    Vec2 v2 = Vec2::ZERO();
-    Vec3 v3 = Vec3::ZERO();
-    Vec4 v4 = Vec4::ZERO();
+    {
+        Quat a(1.0f, 2.0f, 3.0f, 4.0f);
+        Quat b = a.Inversed();
 
-    Mat2 m2 = Mat2::IDENTITY(); 
-    Mat3 m3 = Mat3::IDENTITY();
-    Mat4 m4 = Mat4::IDENTITY();
+        LOG_INFO("{}", FormatMath(a * b));
+    }
+    {
+        Quat rotation = Quat::FromAxisAngle(Vec3::Y(), Radians(90.0f));
 
-    std::cout << FormatMath(v2) << std::endl;
-    std::cout << FormatMath(v3) << std::endl;
-    std::cout << FormatMath(v4) << std::endl;
+        Quat a(0.0f, Vec3(1, 0, 0));
 
-    std::cout << FormatMath(m2) << std::endl;
-    std::cout << FormatMath(m3) << std::endl;
-    std::cout << FormatMath(m4) << std::endl;
+        Quat result = rotation * a * rotation.Conjugated();
+        LOG_INFO("before\t{}", FormatMath(a));
+        LOG_INFO("after\t{}", FormatMath(result));
+    }
+
+    {
+        Mat3 rotation_mat = Quat::FromAxisAngle(Vec3::Y(), Radians(90.0f)).ToMat3();
+        Quat rotation_quat = Quat::FromMat3(rotation_mat);
+
+        Quat a(0.0f, Vec3(1, 0, 0));
+        Quat result = rotation_quat * a * rotation_quat.Conjugated();
+
+        LOG_INFO("before\t{}", FormatMath(a));
+        LOG_INFO("after\t{}", FormatMath(result));
+    }
+
+    {
+        Vec3 a(1, 0, 0);
+        Mat3 rotation = Quat::FromAxisAngle(Vec3::Y(), Radians(90.0f)).ToMat3();
+
+        Vec3 result = rotation * a;
+
+        LOG_INFO("before\t{}", FormatMath(a));
+        LOG_INFO("after\t{}", FormatMath(result));
+    }
+    
 }
