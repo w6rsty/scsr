@@ -1,5 +1,6 @@
 #pragma once
 
+#include "def.hpp"
 #include "vector.hpp"
 
 namespace scsr

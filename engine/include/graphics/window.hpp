@@ -1,7 +1,9 @@
 #pragma once
 
-#include "core/event/event.hpp"
 #include "core/type.hpp"
+
+#include <string>
+#include <functional>
 
 struct SDL_Window;
 struct SDL_Renderer;
@@ -18,7 +20,7 @@ struct WindowProp
 };
 
 class Window
-{
+{   
     SIG(Window)
 public:
     Window(WindowProp prop);
@@ -27,8 +29,7 @@ public:
     Window(Window&& other);
     Window& operator=(Window&& other);
 
-    void OnUpdate();
-    void Draw();
+    void OnUpdate(std::function<void(void*, usize)> fn);
 private:
     bool m_Status = false;
     SDL_Window* m_Handle;

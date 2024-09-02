@@ -26,7 +26,7 @@ template <typename T>
 using Scp = std::unique_ptr<T>;
 
 template <typename T, typename... Args>
-constexpr Scp<T> make_scp(Args&&... args)
+constexpr Scp<T> MakeScp(Args&&... args)
 {
     return std::make_unique<T>(std::forward<Args>(args)...);
 }
@@ -36,7 +36,7 @@ template <typename T>
 using Ref = std::shared_ptr<T>;
 
 template <typename T, typename... Args>
-constexpr Ref<T> make_ref(Args&&... args)
+constexpr Ref<T> MakeRef(Args&&... args)
 {
     return std::make_shared<T>(std::forward<Args>(args)...);
 }

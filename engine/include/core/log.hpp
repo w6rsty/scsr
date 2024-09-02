@@ -95,7 +95,7 @@ public:
         auto it = m_Loggers.find(hash);
         if (it == m_Loggers.end())
         {
-            it = m_Loggers.emplace(hash, make_scp<Logger>(name)).first;
+            it = m_Loggers.emplace(hash, MakeScp<Logger>(name)).first;
         }
 
         return *(it->second);

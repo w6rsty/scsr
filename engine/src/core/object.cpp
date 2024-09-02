@@ -14,7 +14,6 @@ World::World() :
 
 void World::Run()
 {
-
     while (true)
     {
         // Poll events

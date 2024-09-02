@@ -14,7 +14,7 @@ class MSQueue
 public:
     MSQueue()
     {
-        Ref<Node> dumy = make_ref<Node>();
+        Ref<Node> dumy = MakeRef<Node>();
         m_Head.store(dumy);
         m_Tail.store(dumy);
     }
@@ -23,7 +23,7 @@ public:
 
     void Enqueue(T val)
     {
-        Ref<Node> newNode = make_ref<Node>(val);
+        Ref<Node> newNode = MakeRef<Node>(val);
         Ref<Node> oldTail;
 
         while (true)

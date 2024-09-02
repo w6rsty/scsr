@@ -26,6 +26,8 @@ struct Vec2
     void Normalize() { *this /= Length(); }
     Vec2 Normalized() const { return *this / Length(); }
     Vec2 Abs() const { return Vec2(scsr::Abs(x), scsr::Abs(y)); }
+    /// Reciprocal of each element
+    Vec2 Reciprocal() const { return Vec2(1.0f / x, 1.0f / y); }
 
     bool Eq(const Vec2& other) const { return scsr::Equal(x, other.x) && scsr::Equal(y, other.y); }
     bool Neq(const Vec2& other) const { return !Eq(other); }
@@ -41,7 +43,7 @@ struct Vec2
     bool IsZero() const { return scsr::Equal(x, 0.0f) && scsr::Equal(y, 0.0f); }
     bool IsIdentity() const { return scsr::Equal(x, 1.0f) && scsr::Equal(y, 1.0f); }
     bool IsNormalized() const { return scsr::Equal(LengthSquared(), 1.0f); }
-
+    
     Vec2 operator + (const Vec2& other) const { return Vec2(x + other.x, y + other.y); }
     Vec2 operator - (const Vec2& other) const { return Vec2(x - other.x, y - other.y); }
     Vec2 operator * (f32 scalar) const { return Vec2(x * scalar, y * scalar); }
@@ -110,6 +112,8 @@ struct Vec3
     void Normalize() { *this /= Length(); }
     Vec3 Normalized() const { return *this / Length(); }
     Vec3 Abs() const { return Vec3(scsr::Abs(x), scsr::Abs(y), scsr::Abs(z)); }
+    /// Reciprocal of each element
+    Vec3 Recip() const { return Vec3(1.0f / x, 1.0f / y, 1.0f / z); }
 
     bool Eq(const Vec3& other) const { return scsr::Equal(x, other.x) && scsr::Equal(y, other.y) && scsr::Equal(z, other.z); }
     bool Neq(const Vec3& other) const { return !Eq(other); }
@@ -188,7 +192,7 @@ struct Vec4
     Vec4(const Vec2& v, const Vec2& u) : x(v.x), y(v.y), z(u.x), w(u.y) {}
     Vec4(const Vec3& v3, f32 w) : x(v3.x), y(v3.y), z(v3.z), w(w) {}
 
-    Vec3 Trancate() const { return Vec3(x, y, z); }
+    Vec3 Truncate() const { return Vec3(x, y, z); }
     std::span<f32> xyz() { return std::span<f32>(data, 3); }
     std::span<f32> xy() { return std::span<f32>(data, 2); }
     std::span<f32> zw() { return std::span<f32>(data + 2, 2); }
@@ -197,6 +201,8 @@ struct Vec4
     f32 Length() const { return std::sqrt(LengthSquared()); }
     void Normalize() { *this /= Length(); }
     Vec4 Abs() const { return Vec4(scsr::Abs(x), scsr::Abs(y), scsr::Abs(z), scsr::Abs(w)); }
+    /// Reciprocal of each element
+    Vec4 Recip() const { return Vec4(1.0f / x, 1.0f / y, 1.0f / z, 1.0f / w); }
 
     bool Eq(const Vec4& other) const { return scsr::Equal(x, other.x) && scsr::Equal(y, other.y) && scsr::Equal(z, other.z) && scsr::Equal(w, other.w); }
     bool Neq(const Vec4& other) const { return !Eq(other); }

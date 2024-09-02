@@ -31,7 +31,7 @@ Window::Window(WindowProp prop) :
         m_Renderer,
         SDL_PIXELFORMAT_ABGR8888,
         SDL_TEXTUREACCESS_STREAMING,    
-        m_Prop.Width / 20, m_Prop.Height / 20
+        m_Prop.Width, m_Prop.Height
     );
 }
 
@@ -81,35 +81,19 @@ Window& Window::operator=(Window&& other)
     return *this;
 }
 
-void Window::OnUpdate()
+void Window::OnUpdate(std::function<void(void*, usize)> fn)
 {
-    Draw();
+    void* ptr;
+    int pitch;
+    SDL_LockTexture(m_Texture, nullptr, &ptr, &pitch);
+    fn(ptr, pitch);
+    SDL_UnlockTexture(m_Texture);
+
+
     SDL_Rect rect { .x = 0, .y = 0, .w = (int)m_Prop.Width, .h = (int)m_Prop.Height };
 
     SDL_RenderCopy(m_Renderer, m_Texture, nullptr, &rect);
     SDL_RenderPresent(m_Renderer);
-}
-
-void Window::Draw()
-{
-
-    void* ptr;
-    int pitch;
-    SDL_LockTexture(m_Texture, nullptr, &ptr, &pitch);
-
-    u32 w = m_Prop.Width / 20;
-    u32 h = m_Prop.Height / 20;
-    for (int y = 0; y < h; ++y) {
-        for (int x = 0; x <w ; ++x) {
-            u32* pixel = (u32*)((u8*)ptr + y * pitch + x * 4);
-            float r = (float)x / (w - 1);
-            float g = (float)y / (h - 1);
-            float b = 0;
-            *pixel = (u32)(255) << 24 | (u32)(b * 255) << 16 | (u32)(g * 255) << 8 | (u32)(r * 255);
-        }
-    }
-
-    SDL_UnlockTexture(m_Texture);
 }
 
 }

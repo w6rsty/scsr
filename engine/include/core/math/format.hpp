@@ -24,27 +24,27 @@ constexpr std::string FormatMath(const Vec4& vec)
 constexpr std::string FormatMath(const Mat2& mat)
 {
     std::string format = "Mat2: ";
-    format += "row0 (" + std::to_string(mat.m00) + ", " + std::to_string(mat.m01) + "), "
-        += "row1 (" + std::to_string(mat.m10) + ", " + std::to_string(mat.m11) + ")";
+    format += "col0 (" + std::to_string(mat.m00) + ", " + std::to_string(mat.m10) + "), "
+        += "col1 (" + std::to_string(mat.m01) + ", " + std::to_string(mat.m11) + ")";
     return format;
 }
 
 constexpr std::string FormatMath(const Mat3& mat)
 {
     std::string format = "Mat3: ";
-    format += "row0 (" + std::to_string(mat.m00) + ", " + std::to_string(mat.m01) + ", " + std::to_string(mat.m02) + "), "
-        += "row1 (" + std::to_string(mat.m10) + ", " + std::to_string(mat.m11) + ", " + std::to_string(mat.m12) + "), "
-        += "row2 (" + std::to_string(mat.m20) + ", " + std::to_string(mat.m21) + ", " + std::to_string(mat.m22) + ")";
+    format += "col0 (" + std::to_string(mat.m00) + ", " + std::to_string(mat.m10) + ", " + std::to_string(mat.m20) + "), "
+        += "col1 (" + std::to_string(mat.m01) + ", " + std::to_string(mat.m11) + ", " + std::to_string(mat.m21) + "), "
+        += "col2 (" + std::to_string(mat.m02) + ", " + std::to_string(mat.m12) + ", " + std::to_string(mat.m22) + ")";
     return format;
 }
 
 constexpr std::string FormatMath(const Mat4& mat)
 {
     std::string format = "Mat4: ";
-    format += "row0 (" + std::to_string(mat.m00) + ", " + std::to_string(mat.m01) + ", " + std::to_string(mat.m02) + ", " + std::to_string(mat.m03) + "), "
-        += "row1 (" + std::to_string(mat.m10) + ", " + std::to_string(mat.m11) + ", " + std::to_string(mat.m12) + ", " + std::to_string(mat.m13) + "), "
-        += "row2 (" + std::to_string(mat.m20) + ", " + std::to_string(mat.m21) + ", " + std::to_string(mat.m22) + ", " + std::to_string(mat.m23) + "). "
-        += "row3 (" + std::to_string(mat.m30) + ", " + std::to_string(mat.m31) + ", " + std::to_string(mat.m32) + ", " + std::to_string(mat.m33) + ")";
+    format += "col0 (" + std::to_string(mat.m00) + ", " + std::to_string(mat.m10) + ", " + std::to_string(mat.m20) + ", " + std::to_string(mat.m30) + "), "
+        += "col1 (" + std::to_string(mat.m01) + ", " + std::to_string(mat.m11) + ", " + std::to_string(mat.m21) + ", " + std::to_string(mat.m31) + "), "
+        += "col2 (" + std::to_string(mat.m02) + ", " + std::to_string(mat.m12) + ", " + std::to_string(mat.m22) + ", " + std::to_string(mat.m32) + "), "
+        += "col3 (" + std::to_string(mat.m03) + ", " + std::to_string(mat.m13) + ", " + std::to_string(mat.m23) + ", " + std::to_string(mat.m33) + ")";
     return format;
 }
 

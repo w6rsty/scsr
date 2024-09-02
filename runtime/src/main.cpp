@@ -2,23 +2,24 @@
 
 using namespace scsr;
 
-struct Foo {};
-
-void test(Storage& storagae)
+void Update(Storage& storage)
 {
-    storagae.Get<Window>().OnUpdate();
+    auto& window = storage.Get<Window>();
+    auto& pipeline = storage.Get<Pipeline>();
+
+    window.OnUpdate([&pipeline](void* ptr, usize pitch) {
+        pipeline.Perform(ptr, pitch);
+    });
 }
+
 int runtime(int argc, char* argv[])
 {
-
-    World world;
-
     WindowProp prop { .Title = "scsr", .Width = 600, .Height = 600 };
 
-    world
+    World()
         .InitObject(Window {prop})
-        .InitObject(Foo {})
-        .AddSystem(test)
+        .InitObject(Pipeline {})
+        .AddSystem(Update)
         .Run();
 
     return 0;

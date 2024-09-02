@@ -41,4 +41,16 @@ inline T Min(T a, T b) { return a = a < b ? a : b; }
 template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
 inline T Clamp(T value, T min, T max) { return value < min ? min : value > max ? max : value; }
 
+template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+inline T Signum(T value) { return value < 0 ? -1 : value > 0 ? 1 : 0; }
+
+/* Forward declaration */
+struct Vec2;
+struct Vec3;
+struct Vec4;
+struct Mat2;
+struct Mat3;
+struct Mat4;
+struct Quat;
+
 }

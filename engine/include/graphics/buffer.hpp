@@ -5,47 +5,39 @@
 namespace scsr
 {
 
-const usize DefaultBufferSize = 0x1000000;
+enum class BufferUsage
+{
+    Static,
+    Dynamic,
+    Stream,
+};
 
-class BufferAllocator
+enum class BufferStorageFormat
+{
+    RU8,        // Grayscale, 8-bit  integer
+    RGB888,     // RGB,       8-bit  integer
+    RGBA888,    // RGBA,      8-bit  integer
+
+    D32,        // Depth,     24-bit integer
+    D24S8,      // Depth,     24-bit integer, Stencil, 8-bit integer
+};
+
+usize BufferStorageFormatSize(BufferStorageFormat format);
+
+class FrameBuffer final
 {
 public:
-    BufferAllocator(usize cap = DefaultBufferSize);
-    ~BufferAllocator();
+    FrameBuffer(usize width, usize height, BufferStorageFormat format);
+    ~FrameBuffer();
 
-    void* Allocate(usize bytes);
-    void Release();
+    usize Width() const;
+    usize Height() const;
+    BufferStorageFormat Format() const;
+    u8* Data();
 private:
-    usize m_Capacity;
-    u8* m_Ptr;
+    usize m_Width;
+    usize m_Height;
+    BufferStorageFormat m_Format;
+    u8* m_Data;
 };
-
-class Buffer
-{
-    PIN(Buffer)
-    SIG(Buffer)
-public:
-    Buffer(usize size) :
-        m_Size(size)
-    {
-        m_Ptr = new u8[m_Size];
-    }
-
-    ~Buffer()
-    {
-        delete[] m_Ptr;
-    }
-protected:
-    u8* m_Ptr;
-    usize m_Size;
-};
-
-class FrameBuffer final : public Buffer
-{
-public:
-
-private:
-
-};
-
 }
