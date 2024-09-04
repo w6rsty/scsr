@@ -6,34 +6,34 @@
 #include "core/assert.hpp"
 
 #include <map>
+#include <vector>
 #include <typeinfo>
 #include <functional>
-#include <vector>
 
 namespace scsr
 {
 
-template <typename T>
-concept Object = requires(T t, Event e)
-{
-    { t.OnEvent(e) } -> std::same_as<void>;
-};
-
 using ObjectIndex = u32;
 
-/// Generate unique index for each object type
-class ObjectIndexer
+struct Object {};
+
+/// Generate unique index
+template <typename Type>
+class UniqueIndexer
 {
 public:
     template <typename T>
-    static ObjectIndex GetIndex()
+    static u32 GetIndex()
     {
-        static ObjectIndex index = s_Counter++;
+        static u32 index = s_Counter++;
         return index;
     }
 private:
-    static ObjectIndex s_Counter; 
+    static u32 s_Counter; 
 };
+
+template <typename Type>
+u32 UniqueIndexer<Type>::s_Counter = 0;
 
 /// Object storage wrapper
 struct ObjectInfo
@@ -92,21 +92,16 @@ static NormalSystemForm Convert(Func&& func)
 
 struct Storage
 {
-    Storage() {
-        LOG_INFO("Storage created");
-    }
-    /// @brief Register object by static type
-    /// @param object Object to register
-    template <typename T>
-    void Add(T&& object)
+    template <typename T, typename... Args>
+    void AddObject(Args&&... args)
     {
-        ObjectIndex idx = ObjectIndexer::GetIndex<T>();
+        ObjectIndex idx = UniqueIndexer<Object>::GetIndex<T>();
         // Has object and not null
         if (auto it = objects.find(idx); it != objects.end() && it->second.object)
         {
             LOG_WARN("Object <{}> already registered, reset", typeid(T).name());
             it->second.Reset();
-            it->second.object = new T(std::forward<T>(object));
+            it->second.object = new T(std::forward<Args>(args)...);
             return;
         }
         else
@@ -115,16 +110,16 @@ struct Storage
                 idx,
                 ObjectInfo([](void* obj) { delete static_cast<T*>(obj); })
             );
-            newIt.first->second.object = new T(std::forward<T>(object));
+            newIt.first->second.object = new T(std::forward<Args>(args)...);
             LOG_INFO("Object <{}> registered (immediate construct)", typeid(T).name());
         }
     }
 
     /// unregister object
     template <typename T>
-    void Remove()
+    void RemoveObject()
     {
-        ObjectIndex idx = ObjectIndexer::GetIndex<T>();
+        ObjectIndex idx = UniqueIndexer<Object>::GetIndex<T>();
         // Has object and not null
         if (auto it = objects.find(idx); it != objects.end() && it->second.object)
         {
@@ -133,16 +128,16 @@ struct Storage
     }
 
     template <typename T>
-    bool Has() const
+    bool HasObject() const
     {
-        auto it = objects.find(ObjectIndexer::GetIndex<T>());
+        auto it = objects.find(UniqueIndexer<Object>::GetIndex<T>());
         return it != objects.end() && it->second.object;
     }
 
     template <typename T>
-    T& Get()
+    T& GetObject()
     {
-        auto it = objects.find(ObjectIndexer::GetIndex<T>());
+        auto it = objects.find(UniqueIndexer<Object>::GetIndex<T>());
         return *static_cast<T*>(it->second.object);
     }
 
@@ -154,10 +149,10 @@ struct World
 {
     World();
 
-    template <typename T>
-    World& InitObject(T&& object)
+    template <typename T, typename... Args>
+    World& RegisterObject(Args&&... args)
     {
-        storage.Add<T>(std::forward<T>(object));
+        storage.AddObject<T>(std::forward<Args>(args)...);
         return *this;
     }
 
@@ -168,8 +163,17 @@ struct World
         return *this;
     }
 
+    template <typename E>
+    World& RegisterEvent(std::function<void(Event, Storage&)> func)
+    {
+        eventHandler.SetCallback(E::Type(), func);
+        return *this;
+    }
+
+    bool ShouldExit();
     void Run();
 
+    bool running;
     Storage storage;
     EventHandler eventHandler;
 };

@@ -111,6 +111,8 @@ private:
     #define LOG_INFO( ...) LOGGER.Log(::scsr::Level::Info,  __FILE__, __LINE__, __VA_ARGS__)
     #define LOG_WARN( ...) LOGGER.Log(::scsr::Level::Warn,  __FILE__, __LINE__, __VA_ARGS__)
     #define LOG_ERROR(...) LOGGER.Log(::scsr::Level::Error, __FILE__, __LINE__, __VA_ARGS__)
+
+    #define PRINT(...) fmt::println(__VA_ARGS__)
 #else
     #define LOGGER
 
@@ -118,6 +120,8 @@ private:
     #define LOG_INFO( ...)
     #define LOG_WARN( ...)
     #define LOG_ERROR(...)
+
+    #define PRINT(...)
 #endif
 
 }

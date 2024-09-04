@@ -29,6 +29,7 @@ public:
     Window(Window&& other);
     Window& operator=(Window&& other);
 
+    /// Temporary hack
     void OnUpdate(std::function<void(void*, usize)> fn);
 private:
     bool m_Status = false;

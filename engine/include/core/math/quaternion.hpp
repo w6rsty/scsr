@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/assert.hpp"
 #include "def.hpp"
 #include "matrix.hpp"
 #include "vector.hpp"
@@ -216,26 +217,27 @@ inline void RotationEuler(Vec3& v, const Vec3& euler)
 /// Linear interpolation
 inline Quat Lerp(const Quat& q0, const Quat& q1, f32 t)
 {
-    return q0 + (q1 - q0) * t;
+    return q0 * (1.0f - t) + q1 * t;
 }
 
 /// Normalized linear interpolation
 inline Quat Nlerp(const Quat& q0, const Quat& q1, f32 t)
 {
-    return (q0 + (q1 - q0) * t).Normalized();
+    Quat q = Lerp(q0, q1, t);
+    q.Normalize();
+    return q;
 }
 
 /// Spherical linear interpolation
 /// Slerp will fallback to Nlerp two quaternions are close enough
-inline Quat Slerp(const Quat& q0, const Quat& q1, f32 t, f32 threshold = 0.9995f)
+inline Quat Slerp(const Quat& q0, const Quat& q1, f32 t)
 {
+    RT_ASSERT(!q0.IsNormalized(), "Quat q0 not normalied");
+    RT_ASSERT(!q1.IsNormalized(), "Quat q1 not normalied");
+
+    const f32 threshold = 0.9995f;
     f32 dot = q0.x * q1.x + q0.y * q1.y + q0.z * q1.z + q0.w * q1.w;
-    if (dot < 0.0f)
-    {
-        dot = -dot;
-        return (q0 + (q1 - q0) * t).Normalized();
-    }
-    if (dot > threshold)
+    if (scsr::Abs(dot) > threshold)
     {
         return Nlerp(q0, q1, t);
     }

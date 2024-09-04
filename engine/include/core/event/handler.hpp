@@ -3,10 +3,14 @@
 #include "event.hpp"
 #include "core/ds/msqueue.hpp"
 
+#include <functional>
+#include <unordered_map>
+
 namespace scsr
 {
 
 struct World;
+struct Storage;
 
 class EventHandler
 {
@@ -18,9 +22,11 @@ public:
     void Poll();
     void Dispatch();
     void SetFilter(u16 filter);
+    void SetCallback(EventType type, std::function<void(Event, Storage&)> callback);
 private:
-    MSQueue<Event> m_EventQueue;
     u16 m_Filter;
+    MSQueue<Event> m_EventQueue;
+    std::unordered_map<EventType, std::vector<std::function<void(Event, Storage&)>>> m_Callback;
     World& m_World;
 };
 

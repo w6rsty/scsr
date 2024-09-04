@@ -97,4 +97,30 @@ inline std::tuple<Vec3, Quat, Vec3> Mat4ToScaleRotationTranslation(const Mat4& m
     return { scale, rotation, translation };
 }
 
+
+/// Right-handed Orthgraphic projection matrix
+inline Mat4 Mat4Orthographic(
+    f32 left, 
+    f32 right, 
+    f32 bottom, 
+    f32 top, 
+    f32 near, 
+    f32 far
+)
+{
+    f32 a = 2.0f / (right - left);
+    f32 b = 2.0f / (top - bottom);
+    f32 c = -2.0f / (far - near);
+    f32 tx = -(right + left) / (right - left);
+    f32 ty = -(top + bottom) / (top - bottom);
+    f32 tz = -(far + near) / (far - near);
+
+    return Mat4 {
+        Vec4(a, 0.0f, 0.0f, 0.0f),
+        Vec4(0.0f, b, 0.0f, 0.0f),
+        Vec4(0.0f, 0.0f, c, 0.0f),
+        Vec4(tx, ty, tz, 1.0f),
+    };
+}
+
 }

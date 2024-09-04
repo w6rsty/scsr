@@ -4,24 +4,32 @@
 namespace scsr
 {
 
-ObjectIndex ObjectIndexer::s_Counter = 0;
-
 World::World() :
+    running(false),
     eventHandler(*this)
 {
+    RegisterEvent<AppExitEvent>([this](Event, Storage& storage) {
+        running = false;
+    });
+}
 
+bool World::ShouldExit()
+{
+    return running;
 }
 
 void World::Run()
 {
-    while (true)
+    running = true;
+    while (ShouldExit())
     {
         // Poll events
 
         eventHandler.Poll();
         eventHandler.Dispatch();
 
-        for (auto& system : storage.systems) {
+        for (auto& system : storage.systems)
+        {
             system(storage, eventHandler);
         }
 

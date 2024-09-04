@@ -3,6 +3,10 @@
 #include "def.hpp"
 #include "vector.hpp"
 
+// #ifdef SCSR_AVX2
+//    #include <immintrin.h>
+// #endif
+
 namespace scsr
 {
 
