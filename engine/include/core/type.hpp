@@ -64,5 +64,4 @@ x& operator=(x&&) = delete;
 x(const x&) = delete; \
 x& operator=(const x&) = delete;
 
-
 }

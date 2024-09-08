@@ -1,36 +1,19 @@
 #pragma once
 
 #include "core/assert.hpp"
+#include "core/type.hpp"
 #include "def.hpp"
 #include "vector.hpp"
 #include "matrix.hpp"
 #include "quaternion.hpp"
 
+#include <cmath>
 #include <tuple>
 
 namespace scsr
 {
 
-inline Mat3 Mat3FromScale(const Vec3& scale)
-{
-    return Mat3 {
-        scale.x, 0.0f, 0.0f,
-        0.0f, scale.y, 0.0f,
-        0.0f, 0.0f, scale.z
-    };
-}
-
-inline Mat3 Mat3FromRotation(const Quat& quat)
-{
-    return quat.ToMat3();
-}
-
-inline Mat3 Mat3FromRotation(const Vec3& euler)
-{
-    return Quat::FromRotationEuler(euler).ToMat3();
-}
-
-inline Mat4 Mat4FromScale(const Vec3& scale)
+inline Mat4 FromScale(const Vec3& scale)
 {
     return Mat4 {
         scale.x, 0.0f, 0.0f, 0.0f,
@@ -40,17 +23,17 @@ inline Mat4 Mat4FromScale(const Vec3& scale)
     };
 }
 
-inline Mat4 Mat4FromRotation(const Quat& quat)
+inline Mat4 FromRotation(const Quat& quat)
 {
     return quat.ToMat4();
 }
 
-inline Mat4 Mat4FromRotation(const Vec3& euler)
+inline Mat4 FromRotation(const Vec3& euler)
 {
     return Quat::FromRotationEuler(euler).ToMat4();
 }
 
-inline Mat4 Mat4FromTranslation(const Vec3& translation)
+inline Mat4 FromTranslation(const Vec3& translation)
 {
     return Mat4 {
         1.0f, 0.0f, 0.0f, translation.x,
@@ -60,7 +43,7 @@ inline Mat4 Mat4FromTranslation(const Vec3& translation)
     };
 }
 
-inline Mat4 Mat4FromScaleRotationTranslation(const Vec3& scale, const Quat& rotation, const Vec3& translation)
+inline Mat4 FromScaleRotationTranslation(const Vec3& scale, const Quat& rotation, const Vec3& translation)
 {
     Mat3 rotation_mat = rotation.ToMat3();
     return Mat4 {
@@ -72,7 +55,7 @@ inline Mat4 Mat4FromScaleRotationTranslation(const Vec3& scale, const Quat& rota
 }
 
 /// Decompose a 4x4 matrix into scale, rotation and translation
-inline std::tuple<Vec3, Quat, Vec3> Mat4ToScaleRotationTranslation(const Mat4& mat)
+inline std::tuple<Vec3, Quat, Vec3> ToScaleRotationTranslation(const Mat4& mat)
 {
     f32 det = mat.Determinant();
     RT_ASSERT(det != 0.0f, "Matrix is singular");
@@ -97,29 +80,153 @@ inline std::tuple<Vec3, Quat, Vec3> Mat4ToScaleRotationTranslation(const Mat4& m
     return { scale, rotation, translation };
 }
 
-
-/// Right-handed Orthgraphic projection matrix
-inline Mat4 Mat4Orthographic(
-    f32 left, 
-    f32 right, 
-    f32 bottom, 
-    f32 top, 
-    f32 near, 
-    f32 far
-)
+/// Right-handed look-at matrix for object orientation
+/// This is not a camera look-at matrix
+inline Mat4 LookTo(const Vec3& eye, const Vec3& to, const Vec3& up)
 {
-    f32 a = 2.0f / (right - left);
-    f32 b = 2.0f / (top - bottom);
-    f32 c = -2.0f / (far - near);
-    f32 tx = -(right + left) / (right - left);
-    f32 ty = -(top + bottom) / (top - bottom);
-    f32 tz = -(far + near) / (far - near);
+    Vec3 F = Normalized(to);
+    Vec3 R = Normalized(Cross(F, up));
+    Vec3 U = Cross(R, F);
+
+    return Mat4 {
+        Vec4(R.x, U.x, F.x, 0.0f),
+        Vec4(R.y, U.y, F.y, 0.0f),
+        Vec4(R.z, U.z, F.z, 0.0f),
+        Vec4(0.0f, 0.0f, 0.0f, 1.0f)
+    };
+}
+
+/// Right-handed look-at matrix for camera orientation
+inline Mat4 LookAt(const Vec3& eye, const Vec3& target, const Vec3& up)
+{
+    Vec3 F = Normalized(target - eye);
+    Vec3 R = Normalized(Cross(F, up));
+    Vec3 U = Normalized(Cross(R, F));
+
+    return Mat4 {
+        Vec4(R.x, U.x, -F.x, 0.0f),
+        Vec4(R.y, U.y, -F.y, 0.0f),
+        Vec4(R.z, U.z, -F.z, 0.0f),
+        Vec4(-Dot(R, eye), -Dot(U, eye), -Dot(-F, eye), 1.0f)
+    };
+}
+
+/// Right-handed OpenGL perspective projection matrix
+/// Depth range from [-1, 1]
+inline Mat4 ProjectionPerspectiveGL(f32 verticalFov, f32 aspectRatio, f32 near, f32 far)
+{
+    float recipRange = 1.0f / (near - far);
+    float f = 1.0f / std::tanf(verticalFov * 0.5f);
+    float a = f / aspectRatio;
+    float b = (near + far) * recipRange;
+    float c = 2.0f * near * far * recipRange;
+
+    return Mat4 {
+        Vec4(a, 0.0f, 0.0f, 0.0f),
+        Vec4(0.0f, f, 0.0f, 0.0f),
+        Vec4(0.0f, 0.0f, b, -1.0f),
+        Vec4(0.0f, 0.0f, c, 0.0f)
+    };
+}
+
+/// Right-handed OpenGL orthographic projection matrix
+/// Depth range from [-1, 1]
+inline Mat4 ProjectionOrthoGraphicGL(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far)
+{
+    float recipW = 1.0f / (right - left);
+    float recipH = 1.0f / (top - bottom);
+    float recipD = 1.0f / (near - far);
+    float a = 2.0f * recipW;
+    float b = 2.0f * recipH;
+    float c = 2.0f * recipD;
+    float tx = -(right + left) * recipW;
+    float ty = -(top + bottom) * recipH;
+    float tz = (near + far) * recipD;
 
     return Mat4 {
         Vec4(a, 0.0f, 0.0f, 0.0f),
         Vec4(0.0f, b, 0.0f, 0.0f),
         Vec4(0.0f, 0.0f, c, 0.0f),
-        Vec4(tx, ty, tz, 1.0f),
+        Vec4(tx, ty, tz, 1.0f)
+    };
+}
+
+/// Right-handed OpenGL orthographic projection matrix
+/// With x-y symmetry
+/// Depth range from [-1, 1]
+inline Mat4 ProjectionOrthoGraphicGL(f32 right, f32 top, f32 near, f32 far)
+{
+    float a = 1.0f / right;
+    float b = 1.0f / top;
+    float recipD = 1.0f / (near - far);
+    float c = 2.0f * recipD;
+    float tz = (near + far) * recipD;
+
+    return Mat4 {
+        Vec4(a, 0.0f, 0.0f, 0.0f),
+        Vec4(0.0f, b, 0.0f, 0.0f),
+        Vec4(0.0f, 0.0f, c, 0.0f),
+        Vec4(0, 0, tz, 1.0f)
+    };
+}
+
+/// Right-handed Perspective projection matrix
+/// Depth range from [0, 1]
+inline Mat4 ProjectionPerspective(f32 verticalFov, f32 aspectRatio, f32 near, f32 far)
+{
+    // Compute the scale factors for x and y directions
+    float f = 1.0f / std::tanf(verticalFov * 0.5f); // Assumes verticalFov is in radians
+    float a = f / aspectRatio;
+
+    // Depth scaling and translation terms
+    float b = far / (near - far);
+    float c = near * b;
+
+    return Mat4 {
+        Vec4(a, 0.0f, 0.0f, 0.0f),
+        Vec4(0.0f, f, 0.0f, 0.0f),
+        Vec4(0.0f, 0.0f, b, -1.0f),
+        Vec4(0.0f, 0.0f, c, 0.0f)
+    };
+}
+ 
+
+/// Right-handed Orthographic projection matrix
+/// Depth range from [0, 1]
+inline Mat4 ProjectionOrthographic(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far)
+{
+    float recipW = 1.0f / (right - left);
+    float recipH = 1.0f / (top - bottom);
+    float a = 2.0f * recipW;
+    float b = 2.0f * recipH;
+    float c = 1.0f / (near - far);
+    float tx = -(right + left) * recipW;
+    float ty = -(top + bottom) * recipH;
+    float tz = near * c;
+
+    return Mat4 {
+        Vec4(a, 0.0f, 0.0f, 0.0f),
+        Vec4(0.0f, b, 0.0f, 0.0f),
+        Vec4(0.0f, 0.0f, c, 0.0f),
+        Vec4(tx, ty, tz, 1.0f)
+    };
+}
+
+/// Right-handed Orthographic projection matrix
+/// With x-y symmetry
+/// Depth range from [0, 1]
+inline Mat4 ProjectionOrthographic(f32 right, f32 top, f32 near, f32 far)
+{
+    float a = 1.0f / right;
+    float b = 1.0f / top;
+    float c = 1.0f / (near - far);
+    float tz = near * c;
+
+    return Mat4 {
+        Vec4(a, 0.0f, 0.0f, 0.0f),
+        Vec4(0.0f, b, 0.0f, 0.0f),
+        Vec4(0.0f, 0.0f, c, 0.0f),
+        Vec4(0, 0, tz, 1.0f)
     };
 }
 

@@ -35,6 +35,7 @@ target_compile_features(scsr.core PUBLIC cxx_std_20)
 target_link_libraries(scsr.core PUBLIC fmt SDL2::SDL2-static)
 target_compile_definitions(scsr.core PUBLIC "$<$<CONFIG:Debug>:SCSR_LOGGING>" SCSR_LOGGING)
 target_compile_definitions(scsr.core PUBLIC "$<$<CONFIG:Debug>:SCSR_RT_ASSERT>" SCSR_RT_ASSERT)
+target_compile_definitions(scsr.core PUBLIC "$<$<CONFIG:Debug>:SCSR_PROFILING>" SCSR_PROFILING)
 # check AVX2 compiler support
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag("-mavx2" COMPILER_SUPPORTS_AVX2)

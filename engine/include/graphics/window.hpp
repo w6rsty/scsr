@@ -19,25 +19,29 @@ struct WindowProp
     u32 Height;
 };
 
+struct Context
+{
+    SDL_Window* handle;
+    SDL_Renderer* renderer;
+    SDL_Texture* texture;
+};
+
 class Window
 {   
     SIG(Window)
 public:
-    Window(WindowProp prop);
+    Window(const std::string& title, i32 width, i32 height);
     ~Window();
-
-    Window(Window&& other);
-    Window& operator=(Window&& other);
 
     /// Temporary hack
     void OnUpdate(std::function<void(void*, usize)> fn);
 private:
     bool m_Status = false;
-    SDL_Window* m_Handle;
-    SDL_Renderer* m_Renderer;
-    SDL_Texture* m_Texture;
+    Scp<Context> m_Context;
 
-    WindowProp m_Prop;
+    std::string m_Title;
+    i32 m_Width;
+    i32 m_Height;
 };
 
 }

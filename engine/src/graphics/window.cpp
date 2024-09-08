@@ -1,37 +1,41 @@
 #include "graphics/window.hpp"
 #include "core/log.hpp"
+#include "core/io.hpp"
 
 #include "SDL.h"
 
 namespace scsr
 { 
 
-Window::Window(WindowProp prop) :
-    m_Prop(prop)
+Window::Window(const std::string& title, i32 width, i32 height) :
+    m_Title(title),
+    m_Width(width),
+    m_Height(height)
 {
+    m_Context = MakeScp<Context>();
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 
-    m_Handle = SDL_CreateWindow(
-        m_Prop.Title.c_str(),
+    m_Context->handle = SDL_CreateWindow(
+        m_Title.c_str(),
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        m_Prop.Width, m_Prop.Height,
+        m_Width, m_Height,
         SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI
     );
 
-    m_Status = m_Handle != nullptr;
+    m_Status = m_Context->handle != nullptr;
     LOG_INFO("SDL context created");
 
-    m_Renderer = SDL_CreateRenderer(
-        m_Handle,
+    m_Context->renderer = SDL_CreateRenderer(
+        m_Context->handle,
         -1,
-        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
+        SDL_RENDERER_ACCELERATED
     );
 
-    m_Texture = SDL_CreateTexture(
-        m_Renderer,
+    m_Context->texture = SDL_CreateTexture(
+        m_Context->renderer,
         SDL_PIXELFORMAT_ABGR8888,
         SDL_TEXTUREACCESS_STREAMING,    
-        m_Prop.Width, m_Prop.Height
+        800, 600
     );
 }
 
@@ -39,61 +43,39 @@ Window::~Window()
 {
     if (m_Status)
     {
-        SDL_DestroyTexture(m_Texture);
-        SDL_DestroyRenderer(m_Renderer);
-        SDL_DestroyWindow(m_Handle);
+        SDL_DestroyTexture(m_Context->texture);
+        SDL_DestroyRenderer(m_Context->renderer);
+        SDL_DestroyWindow(m_Context->handle);
 
         SDL_Quit();
         LOG_INFO("SDL context destroyed");
     }
 }
 
-Window::Window(Window&& other)
-{
-    m_Status = other.m_Status;
-    m_Handle = other.m_Handle;
-    m_Renderer = other.m_Renderer;
-    m_Texture = other.m_Texture;
-    m_Prop = other.m_Prop;
-
-    other.m_Status = false;
-    other.m_Handle = nullptr;
-    other.m_Renderer = nullptr;
-    other.m_Texture = nullptr;
-}
-
-Window& Window::operator=(Window&& other)
-{
-    if (this != &other)
-    {
-        m_Status = other.m_Status;
-        m_Handle = other.m_Handle;
-        m_Renderer = other.m_Renderer;
-        m_Texture = other.m_Texture;
-        m_Prop = other.m_Prop;
-
-        other.m_Status = false;
-        other.m_Handle = nullptr;
-        other.m_Renderer = nullptr;
-        other.m_Texture = nullptr;
-    }
-
-    return *this;
-}
-
 void Window::OnUpdate(std::function<void(void*, usize)> fn)
 {
+    
     void* ptr;
     int pitch;
-    SDL_LockTexture(m_Texture, nullptr, &ptr, &pitch);
-    fn(ptr, pitch);
-    SDL_UnlockTexture(m_Texture);
 
+    {
+        PROFILE_SCOPE("Lock & unlock");
+        SDL_LockTexture(m_Context->texture, nullptr, &ptr, &pitch);
+        memset(ptr, 0, pitch * m_Height);
+        fn(ptr, pitch);
+        SDL_UnlockTexture(m_Context->texture);
+    }
 
-    SDL_Rect rect { .x = 0, .y = 0, .w = (int)m_Prop.Width, .h = (int)m_Prop.Height };
+    int w, h;
+    SDL_GetWindowSize(m_Context->handle, &w, &h);
+    SDL_Rect rect { .x = 0, .y = 0, .w = w, .h = h };
 
-    SDL_RenderCopy(m_Renderer, m_Texture, nullptr, &rect);
-    SDL_RenderPresent(m_Renderer);
+    {
+        PROFILE_SCOPE("Texture copy & present");
+        SDL_RenderClear(m_Context->renderer);
+        SDL_RenderCopy(m_Context->renderer, m_Context->texture, nullptr, &rect);
+        SDL_RenderPresent(m_Context->renderer);
+    }
 }
 
 }

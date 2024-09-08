@@ -104,8 +104,8 @@ struct Vec3
     Vec3(const Vec2& v2, f32 z) : x(v2.x), y(v2.y), z(z) {}
     Vec3(f32 x, const Vec2& v2) : x(x), y(v2.x), z(v2.y) {}
 
-    std::span<f32> xy() { return std::span<f32>(data, 2); }
-    std::span<f32> yz() { return std::span<f32>(data + 1, 2); }
+    Vec2 xy() { return Vec2(x, y); }
+    Vec2 yz() { return Vec2(y, z); }
 
     f32 LengthSquared() const { return x * x + y * y + z * z; }
     f32 Length() const { return std::sqrt(LengthSquared()); }
@@ -190,12 +190,13 @@ struct Vec4
     Vec4(f32* raw) { memcpy(data, raw, sizeof(f32) * 4); }
 
     Vec4(const Vec2& v, const Vec2& u) : x(v.x), y(v.y), z(u.x), w(u.y) {}
+    Vec4(const Vec2& v, f32 z, f32 w) : x(v.x), y(v.y), z(), w(w) {}
     Vec4(const Vec3& v3, f32 w) : x(v3.x), y(v3.y), z(v3.z), w(w) {}
 
     Vec3 Truncate() const { return Vec3(x, y, z); }
-    std::span<f32> xyz() { return std::span<f32>(data, 3); }
-    std::span<f32> xy() { return std::span<f32>(data, 2); }
-    std::span<f32> zw() { return std::span<f32>(data + 2, 2); }
+    Vec3 xyz() { return Vec3(x, y, z); }
+    Vec2 xy() { return Vec2(x, y); }
+    Vec2 zw() { return Vec2(z, w); }
     
     f32 LengthSquared() const { return x * x + y * y + z * z + w * w; }
     f32 Length() const { return std::sqrt(LengthSquared()); }

@@ -113,7 +113,7 @@ struct Quat
     static Quat FromAxisAngle(const Vec3& axis, f32 angle)
     {
         f32 halfAngle = angle * 0.5f;
-        return Quat(std::cos(halfAngle), axis * std::sin(halfAngle));
+        return Quat(std::cos(halfAngle), axis.Normalized() * std::sin(halfAngle));
     }
     /// Rotate around X in radians
     static Quat FromRotationX(f32 angle) { return FromAxisAngle(Vec3::X(), angle); }

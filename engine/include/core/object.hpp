@@ -66,6 +66,7 @@ struct ObjectInfo
 struct Storage;
 
 using NormalSystemForm = std::function<void(Storage&, EventHandler&)>;
+using StartupSystem = std::function<void(World&, Storage&)>;
 
 template <typename Func>
 static NormalSystemForm Convert(Func&& func)
@@ -143,6 +144,13 @@ struct Storage
 
     std::map<ObjectIndex, ObjectInfo> objects;
     std::vector<NormalSystemForm> systems;
+    std::vector<StartupSystem> startups;
+};
+
+struct Ticker
+{
+    usize tick = 0;
+    usize delta = 0;
 };
 
 struct World
@@ -160,6 +168,12 @@ struct World
     World& AddSystem(Func&& func)
     {
         storage.systems.push_back(Convert<Func>(std::forward<Func>(func)));
+        return *this;
+    }
+
+    World& AddStartup(StartupSystem func)
+    {
+        storage.startups.push_back(func);
         return *this;
     }
 

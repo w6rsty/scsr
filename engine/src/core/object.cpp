@@ -1,5 +1,5 @@
 #include "core/object.hpp"
-#include "core/event/handler.hpp"
+#include "core/io.hpp"
 
 namespace scsr
 {
@@ -11,6 +11,8 @@ World::World() :
     RegisterEvent<AppExitEvent>([this](Event, Storage& storage) {
         running = false;
     });
+
+    RegisterObject<Ticker>();
 }
 
 bool World::ShouldExit()
@@ -20,20 +22,33 @@ bool World::ShouldExit()
 
 void World::Run()
 {
+    for (auto& startup : storage.startups)
+    {
+        startup(*this, storage);
+    }
+
     running = true;
     while (ShouldExit())
     {
-        // Poll events
+        auto start = std::chrono::high_resolution_clock::now();
 
-        eventHandler.Poll();
-        eventHandler.Dispatch();
-
-        for (auto& system : storage.systems)
         {
-            system(storage, eventHandler);
+            PROFILE_SCOPE("Event handle");
+            eventHandler.Poll();
+            eventHandler.Dispatch();
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));
+        {
+            PROFILE_SCOPE("System update");
+            for (auto& system : storage.systems)
+            {
+                system(storage, eventHandler);
+            }
+        }
+
+        std::chrono::duration<f64> elapsed = std::chrono::high_resolution_clock::now() - start;
+        storage.GetObject<Ticker>().delta = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+        ++(storage.GetObject<Ticker>().tick);
     }
 }
 

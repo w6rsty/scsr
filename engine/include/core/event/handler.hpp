@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/format.hpp"
 #include "event.hpp"
 #include "core/ds/msqueue.hpp"
 
@@ -29,5 +30,8 @@ private:
     std::unordered_map<EventType, std::vector<std::function<void(Event, Storage&)>>> m_Callback;
     World& m_World;
 };
+
+bool IsKeyUp(KeyboardKeyCode code);
+bool IsKeyDown(KeyboardKeyCode code);
 
 }

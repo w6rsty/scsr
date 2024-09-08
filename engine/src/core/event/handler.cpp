@@ -106,7 +106,6 @@ void EventHandler::Dispatch()
                     callback(event, m_World.storage);
                 }
             }
-            // LOG_INFO("{}", FormatEvent(event));
         }
     } 
 }
@@ -119,6 +118,18 @@ void EventHandler::SetFilter(u16 filter)
 void EventHandler::SetCallback(EventType type, std::function<void(Event, Storage&)> callback)
 {
     m_Callback[type].emplace_back(callback);
+}
+
+bool IsKeyUp(KeyboardKeyCode code)
+{
+    // TODO: Implement
+    return false;
+}
+
+bool IsKeyDown(KeyboardKeyCode code)
+{
+    // TODO: Implement
+    return false;
 }
 
 }

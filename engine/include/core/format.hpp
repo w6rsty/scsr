@@ -97,28 +97,28 @@ constexpr std::string FormatMath(const Vec4& vec)
 
 constexpr std::string FormatMath(const Mat2& mat)
 {
-    std::string format = "Mat2: ";
-    format += "col0 (" + std::to_string(mat.m00) + ", " + std::to_string(mat.m10) + "), "
-        += "col1 (" + std::to_string(mat.m01) + ", " + std::to_string(mat.m11) + ")";
+    std::string format = "Mat2:\n";
+    format += std::to_string(mat.m00) + " " + std::to_string(mat.m01) + "\n";
+    format += std::to_string(mat.m10) + " " + std::to_string(mat.m11) + "\n";
     return format;
 }
 
 constexpr std::string FormatMath(const Mat3& mat)
 {
-    std::string format = "Mat3: ";
-    format += "col0 (" + std::to_string(mat.m00) + ", " + std::to_string(mat.m10) + ", " + std::to_string(mat.m20) + "), "
-        += "col1 (" + std::to_string(mat.m01) + ", " + std::to_string(mat.m11) + ", " + std::to_string(mat.m21) + "), "
-        += "col2 (" + std::to_string(mat.m02) + ", " + std::to_string(mat.m12) + ", " + std::to_string(mat.m22) + ")";
+    std::string format = "Mat3:\n";
+    format += std::to_string(mat.m00) + " " + std::to_string(mat.m01) + " " + std::to_string(mat.m02) + "\n";
+    format += std::to_string(mat.m10) + " " + std::to_string(mat.m11) + " " + std::to_string(mat.m12) + "\n";
+    format += std::to_string(mat.m20) + " " + std::to_string(mat.m21) + " " + std::to_string(mat.m22) + "\n";
     return format;
 }
 
 constexpr std::string FormatMath(const Mat4& mat)
 {
-    std::string format = "Mat4: ";
-    format += "col0 (" + std::to_string(mat.m00) + ", " + std::to_string(mat.m10) + ", " + std::to_string(mat.m20) + ", " + std::to_string(mat.m30) + "), "
-        += "col1 (" + std::to_string(mat.m01) + ", " + std::to_string(mat.m11) + ", " + std::to_string(mat.m21) + ", " + std::to_string(mat.m31) + "), "
-        += "col2 (" + std::to_string(mat.m02) + ", " + std::to_string(mat.m12) + ", " + std::to_string(mat.m22) + ", " + std::to_string(mat.m32) + "), "
-        += "col3 (" + std::to_string(mat.m03) + ", " + std::to_string(mat.m13) + ", " + std::to_string(mat.m23) + ", " + std::to_string(mat.m33) + ")";
+    std::string format = "Mat4:\n";
+    format += std::to_string(mat.m00) + " " + std::to_string(mat.m01) + " " + std::to_string(mat.m02) + " " + std::to_string(mat.m03) + "\n";
+    format += std::to_string(mat.m10) + " " + std::to_string(mat.m11) + " " + std::to_string(mat.m12) + " " + std::to_string(mat.m13) + "\n";
+    format += std::to_string(mat.m20) + " " + std::to_string(mat.m21) + " " + std::to_string(mat.m22) + " " + std::to_string(mat.m23) + "\n";
+    format += std::to_string(mat.m30) + " " + std::to_string(mat.m31) + " " + std::to_string(mat.m32) + " " + std::to_string(mat.m33) + "\n";
     return format;
 }
 

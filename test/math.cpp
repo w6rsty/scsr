@@ -1,4 +1,6 @@
 #include "core/core.hpp"
+#include "core/math/ext.hpp"
+#include "core/math/vector.hpp"
 
 using namespace scsr;
 
@@ -39,19 +41,24 @@ int main() {
     //     LOG_INFO("before\t{}", FormatMath(a));
     //     LOG_INFO("after\t{}", FormatMath(result));
     // }
+    // {
+    //     // test SRT decomposition
+    //     Vec3 scale(1.0f, 2.0f, 3.0f);
+    //     Quat rotation = Quat::FromRotationY(Radians(90.0f));
+    //     Vec3 translation(4.0f, 5.0f, 6.0f);
+
+    //     Mat4 transform = Mat4FromScaleRotationTranslation(scale, rotation, translation);
+
+    //     LOG_INFO("transform\t{}", FormatMath(transform));
+
+    //     auto [s, r, t] = Mat4ToScaleRotationTranslation(transform);
+    //     LOG_INFO("scale\t{}", FormatMath(s));
+    //     LOG_INFO("rotation\t{}", FormatMath(r));
+    //     LOG_INFO("translation\t{}", FormatMath(t));
+    // }
     {
-        // test SRT decomposition
-        Vec3 scale(1.0f, 2.0f, 3.0f);
-        Quat rotation = Quat::FromRotationY(Radians(90.0f));
-        Vec3 translation(4.0f, 5.0f, 6.0f);
+        auto lookto = Mat4LookTo(Vec3::ZERO(), Vec3 {1, 2, 3});
 
-        Mat4 transform = Mat4FromScaleRotationTranslation(scale, rotation, translation);
-
-        LOG_INFO("transform\t{}", FormatMath(transform));
-
-        auto [s, r, t] = Mat4ToScaleRotationTranslation(transform);
-        LOG_INFO("scale\t{}", FormatMath(s));
-        LOG_INFO("rotation\t{}", FormatMath(r));
-        LOG_INFO("translation\t{}", FormatMath(t));
+        PRINT("{}", FormatMath(lookto));
     }
 }
