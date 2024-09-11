@@ -20,6 +20,7 @@ struct Quat
         Vec4 v4; // to simplify internal operation
     };
 
+    Quat() = default;
     constexpr Quat(f32 w, f32 x, f32 y, f32 z) : w(w), x(x), y(y), z(z) {}
     constexpr Quat(f32 s, const Vec3& v) : s(s), v3(v) {}
     /// Notice the order of the elements is different from Vec4 

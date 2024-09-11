@@ -24,7 +24,7 @@ struct Camera
         position = Vec3(0.0f, 0.0f, 0.0f);
         rotation = Vec3::NEG_Z();
         up = Vec3::Y();
-        verticalFov = Radians(60.0f);
+        verticalFov = Radians(30.0f);
         aspectRatio = 800.0f / 600.0f;
         proj = ProjectionPerspective(verticalFov, aspectRatio, 0.1f, 100.0f);
         UpdateView();
@@ -35,7 +35,7 @@ struct Camera
     {
         verticalFov = Radians(fov);
         aspectRatio = aspect;
-        proj = ProjectionPerspective(verticalFov, aspectRatio, near, far);
+        proj = ProjectionPerspectiveGL(verticalFov, aspectRatio, near, far);
     }
     void Goto(const Vec3& pos)
     {
@@ -106,5 +106,5 @@ static void CameraPlugin(World& world, Storage& storage)
     // world.RegisterEvent<MouseMotionEvent>(MouseMotionInput);
 
     auto& camera = storage.GetObject<Camera>();
-    camera.Goto(Vec3(0, 0, 4));
+    camera.Goto(Vec3(0, 0, 5));
 }

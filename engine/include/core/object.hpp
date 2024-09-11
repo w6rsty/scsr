@@ -66,7 +66,7 @@ struct ObjectInfo
 struct Storage;
 
 using NormalSystemForm = std::function<void(Storage&, EventHandler&)>;
-using StartupSystem = std::function<void(World&, Storage&)>;
+using Plugin = std::function<void(World&, Storage&)>;
 
 template <typename Func>
 static NormalSystemForm Convert(Func&& func)
@@ -144,7 +144,7 @@ struct Storage
 
     std::map<ObjectIndex, ObjectInfo> objects;
     std::vector<NormalSystemForm> systems;
-    std::vector<StartupSystem> startups;
+    std::vector<Plugin> plugins;
 };
 
 struct Ticker
@@ -171,9 +171,9 @@ struct World
         return *this;
     }
 
-    World& AddStartup(StartupSystem func)
+    World& AddPlugin(Plugin func)
     {
-        storage.startups.push_back(func);
+        storage.plugins.push_back(func);
         return *this;
     }
 

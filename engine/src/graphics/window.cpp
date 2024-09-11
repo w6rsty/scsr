@@ -1,80 +1,65 @@
 #include "graphics/window.hpp"
+#include "graphics/image.hpp"
 #include "core/log.hpp"
-#include "core/io.hpp"
 
-#include "SDL.h"
+#include <SDL.h>
+#include <Tracy.hpp>
 
 namespace scsr
 { 
 
-Window::Window(const std::string& title, i32 width, i32 height) :
-    m_Title(title),
-    m_Width(width),
-    m_Height(height)
+Window::Window(WindowProp prop) :
+    m_Prop(prop)
 {
-    m_Context = MakeScp<Context>();
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 
-    m_Context->handle = SDL_CreateWindow(
-        m_Title.c_str(),
+    m_NativeHandle = SDL_CreateWindow(
+        prop.title.c_str(),
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        m_Width, m_Height,
+        m_Prop.width, m_Prop.height,
         SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI
     );
 
-    m_Status = m_Context->handle != nullptr;
+    m_Status = m_NativeHandle != nullptr;
     LOG_INFO("SDL context created");
-
-    m_Context->renderer = SDL_CreateRenderer(
-        m_Context->handle,
-        -1,
-        SDL_RENDERER_ACCELERATED
-    );
-
-    m_Context->texture = SDL_CreateTexture(
-        m_Context->renderer,
-        SDL_PIXELFORMAT_ABGR8888,
-        SDL_TEXTUREACCESS_STREAMING,    
-        800, 600
-    );
 }
 
 Window::~Window()
 {
     if (m_Status)
     {
-        SDL_DestroyTexture(m_Context->texture);
-        SDL_DestroyRenderer(m_Context->renderer);
-        SDL_DestroyWindow(m_Context->handle);
+        SDL_DestroyWindow(static_cast<SDL_Window*>(m_NativeHandle));
 
         SDL_Quit();
         LOG_INFO("SDL context destroyed");
     }
 }
 
-void Window::OnUpdate(std::function<void(void*, usize)> fn)
+void Window::OnUpdate(Ref<Image> image)
 {
+    ZoneScopedN("Window::OnUpdate");
+    SDL_Window* window = static_cast<SDL_Window*>(m_NativeHandle);
+    i32 w, h;
+    SDL_GetWindowSize(window, &w, &h);
+    SDL_Rect rect { .w = w, .h = h };
     
-    void* ptr;
-    int pitch;
-
     {
-        PROFILE_SCOPE("Lock & unlock");
-        SDL_LockTexture(m_Context->texture, nullptr, &ptr, &pitch);
-        memset(ptr, 0, pitch * m_Height);
-        fn(ptr, pitch);
-        SDL_UnlockTexture(m_Context->texture);
+        ZoneScopedN("Image Blit");
+        SDL_FillRect(
+            SDL_GetWindowSurface(window),
+            &rect, 
+            SDL_MapRGB(SDL_GetWindowSurface(window)->format, 0, 0, 0)
+        );
+        SDL_BlitScaled(
+            static_cast<SDL_Surface*>(image->SurfaceHandle()),
+            nullptr, 
+            SDL_GetWindowSurface(window),
+            &rect
+        );
     }
-
-    int w, h;
-    SDL_GetWindowSize(m_Context->handle, &w, &h);
-    SDL_Rect rect { .x = 0, .y = 0, .w = w, .h = h };
-
     {
-        PROFILE_SCOPE("Texture copy & present");
-        SDL_RenderClear(m_Context->renderer);
-        SDL_RenderCopy(m_Context->renderer, m_Context->texture, nullptr, &rect);
-        SDL_RenderPresent(m_Context->renderer);
+        ZoneScopedN("SDL Update");
+        SDL_UpdateWindowSurface(window);
     }
 }
 

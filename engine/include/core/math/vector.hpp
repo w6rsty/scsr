@@ -194,9 +194,9 @@ struct Vec4
     Vec4(const Vec3& v3, f32 w) : x(v3.x), y(v3.y), z(v3.z), w(w) {}
 
     Vec3 Truncate() const { return Vec3(x, y, z); }
-    Vec3 xyz() { return Vec3(x, y, z); }
-    Vec2 xy() { return Vec2(x, y); }
-    Vec2 zw() { return Vec2(z, w); }
+    Vec3 xyz() const { return Vec3(x, y, z); }
+    Vec2 xy() const { return Vec2(x, y); }
+    Vec2 zw() const { return Vec2(z, w); }
     
     f32 LengthSquared() const { return x * x + y * y + z * z + w * w; }
     f32 Length() const { return std::sqrt(LengthSquared()); }
@@ -252,5 +252,83 @@ struct Vec4
 inline Vec4 Abs(const Vec4& v) { return v.Abs(); }
 inline bool Equal(const Vec4& a, const Vec4& b) { return a.Eq(b); }
 inline bool NotEqual(const Vec4& a, const Vec4& b) { return a.Neq(b); }
+
+struct Vec2i
+{
+    union
+    {
+        struct { i32 x, y; };
+        i32 data[2];
+    };
+
+    Vec2i() = default;
+    constexpr Vec2i(i32 x, i32 y) : x(x), y(y) {}
+    Vec2i(i32* raw) { memcpy(data, raw, sizeof(i32) * 2); }
+
+    i32 ElementSum() const { return x + y; }
+    i32 ElementProduct() const { return x * y; }
+    i32 ElementMax() const { return scsr::Max(x, y); }
+    i32 ElementMin() const { return scsr::Min(x, y); }
+    bool IsZero() const { return x == 0 && y == 0; }
+
+    Vec2i operator + (const Vec2i& other) const { return Vec2i(x + other.x, y + other.y); }
+    Vec2i operator - (const Vec2i& other) const { return Vec2i(x - other.x, y - other.y); }
+    Vec2i operator * (i32 scalar) const { return Vec2i(x * scalar, y * scalar); }
+    Vec2i operator / (i32 scalar) const { return Vec2i(x / scalar, y / scalar); }
+};
+
+inline Vec2i Min(const Vec2i& a, const Vec2i& b) { return Vec2i(scsr::Min(a.x, b.x), scsr::Min(a.y, b.y)); }
+inline Vec2i Max(const Vec2i& a, const Vec2i& b) { return Vec2i(scsr::Max(a.x, b.x), scsr::Max(a.y, b.y)); }
+
+struct Vec3i
+{
+    union
+    {
+        struct { i32 x, y, z; };
+        i32 data[3];
+    };
+
+    Vec3i() = default;
+    constexpr Vec3i(i32 x, i32 y, i32 z) : x(x), y(y), z(z) {}
+    Vec3i(i32* raw) { memcpy(data, raw, sizeof(i32) * 3); }
+
+    i32 ElementSum() const { return x + y + z; }
+    i32 ElementProduct() const { return x * y * z; }
+    i32 ElementMax() const { return scsr::Max(x, scsr::Max(y, z)); }
+    i32 ElementMin() const { return scsr::Min(x, scsr::Min(y, z)); }
+    bool IsZero() const { return x == 0 && y == 0 && z == 0; }
+
+    Vec3i operator + (const Vec3i& other) const { return Vec3i(x + other.x, y + other.y, z + other.z); }
+    Vec3i operator - (const Vec3i& other) const { return Vec3i(x - other.x, y - other.y, z - other.z); }
+    Vec3i operator * (i32 scalar) const { return Vec3i(x * scalar, y * scalar, z * scalar); }
+    Vec3i operator / (i32 scalar) const { return Vec3i(x / scalar, y / scalar, z / scalar); }
+};
+
+inline Vec3i Min(const Vec3i& a, const Vec3i& b) { return Vec3i(scsr::Min(a.x, b.x), scsr::Min(a.y, b.y), scsr::Min(a.z, b.z)); }
+inline Vec3i Max(const Vec3i& a, const Vec3i& b) { return Vec3i(scsr::Max(a.x, b.x), scsr::Max(a.y, b.y), scsr::Max(a.z, b.z)); }
+
+struct Vec4i
+{
+    union
+    {
+        struct { i32 x, y, z, w; };
+        i32 data[4];
+    };
+
+    Vec4i() = default;
+    constexpr Vec4i(i32 x, i32 y, i32 z, i32 w) : x(x), y(y), z(z), w(w) {}
+    Vec4i(i32* raw) { memcpy(data, raw, sizeof(i32) * 4); }
+
+    i32 ElementSum() const { return x + y + z + w; }
+    i32 ElementProduct() const { return x * y * z * w; }
+    i32 ElementMax() const { return scsr::Max(x, scsr::Max(y, scsr::Max(z, w))); }
+    i32 ElementMin() const { return scsr::Min(x, scsr::Min(y, scsr::Min(z, w))); }
+    bool IsZero() const { return x == 0 && y == 0 && z == 0 && w == 0; }
+
+    Vec4i operator + (const Vec4i& other) const { return Vec4i(x + other.x, y + other.y, z + other.z, w + other.w); }
+    Vec4i operator - (const Vec4i& other) const { return Vec4i(x - other.x, y - other.y, z - other.z, w - other.w); }
+    Vec4i operator * (i32 scalar) const { return Vec4i(x * scalar, y * scalar, z * scalar, w * scalar); }
+    Vec4i operator / (i32 scalar) const { return Vec4i(x / scalar, y / scalar, z / scalar, w / scalar); }
+};
 
 }

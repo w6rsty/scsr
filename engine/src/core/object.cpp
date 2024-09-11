@@ -1,5 +1,6 @@
 #include "core/object.hpp"
-#include "core/io.hpp"
+
+#include <Tracy.hpp>
 
 namespace scsr
 {
@@ -22,7 +23,7 @@ bool World::ShouldExit()
 
 void World::Run()
 {
-    for (auto& startup : storage.startups)
+    for (auto& startup : storage.plugins)
     {
         startup(*this, storage);
     }
@@ -33,13 +34,13 @@ void World::Run()
         auto start = std::chrono::high_resolution_clock::now();
 
         {
-            PROFILE_SCOPE("Event handle");
+            ZoneScopedN("Event polling");
             eventHandler.Poll();
             eventHandler.Dispatch();
         }
 
         {
-            PROFILE_SCOPE("System update");
+            ZoneScopedN("Update systems");
             for (auto& system : storage.systems)
             {
                 system(storage, eventHandler);
@@ -49,6 +50,8 @@ void World::Run()
         std::chrono::duration<f64> elapsed = std::chrono::high_resolution_clock::now() - start;
         storage.GetObject<Ticker>().delta = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
         ++(storage.GetObject<Ticker>().tick);
+        
+        FrameMark;
     }
 }
 

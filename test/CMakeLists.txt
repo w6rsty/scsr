@@ -20,3 +20,4 @@ endmacro()
 AddCoreTest(math)
 
 AddGraphicsTest(shader)
+AddGraphicsTest(gltf)

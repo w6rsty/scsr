@@ -6,7 +6,7 @@
 
 namespace scsr {
 
-using usize = size_t;
+using byte  = char;
 
 using u8    = uint8_t;
 using u16   = uint16_t; 
@@ -20,6 +20,8 @@ using i64   = int64_t;
 
 using f32   = float;
 using f64   = double;
+
+using usize = size_t;
 
 /// Unique pointer alias
 template <typename T>

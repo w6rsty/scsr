@@ -3,7 +3,6 @@
 #include "core/type.hpp"
 
 #include <string>
-#include <functional>
 
 struct SDL_Window;
 struct SDL_Renderer;
@@ -12,36 +11,27 @@ struct SDL_Texture;
 namespace scsr
 {
 
+class Image;
+
 struct WindowProp
 {
-    std::string Title;
-    u32 Width;
-    u32 Height;
-};
-
-struct Context
-{
-    SDL_Window* handle;
-    SDL_Renderer* renderer;
-    SDL_Texture* texture;
+    std::string title;
+    i32 width;
+    i32 height;
 };
 
 class Window
 {   
     SIG(Window)
 public:
-    Window(const std::string& title, i32 width, i32 height);
+    Window(WindowProp prop);
     ~Window();
 
-    /// Temporary hack
-    void OnUpdate(std::function<void(void*, usize)> fn);
+    void OnUpdate(Ref<Image> image);
 private:
     bool m_Status = false;
-    Scp<Context> m_Context;
-
-    std::string m_Title;
-    i32 m_Width;
-    i32 m_Height;
+    void* m_NativeHandle;
+    WindowProp m_Prop;
 };
 
 }

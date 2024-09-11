@@ -15,4 +15,5 @@
 
 #include "graphics/window.hpp"      // IWYU pragma: export
 #include "graphics/pipeline.hpp"    // IWYU pragma: export
+#include "graphics/image.hpp"       // IWYU pragma: export 
 
