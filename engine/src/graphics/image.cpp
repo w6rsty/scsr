@@ -20,6 +20,7 @@ Image::~Image()
 
 void Image::Clear()
 {
+    ZoneScopedN("Image Clear");
     memset(m_Data, 0, m_Prop.width * m_Prop.height * 4);
 }
 

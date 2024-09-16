@@ -84,6 +84,14 @@ static void KeyInput(Event event, Storage& storage)
     {
         delta.x = 1.0f;
     }
+    else if (key == KeyboardKeyCode::KeyLeftShift)
+    {
+        delta.y = 1.0f;
+    }
+    else if (key == KeyboardKeyCode::KeyLeftControl)
+    {
+        delta.y = -1.0f;
+    } 
     else
     {
         return;

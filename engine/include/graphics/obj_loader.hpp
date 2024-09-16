@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/math/math.hpp"
+#include "graphics/vertex.hpp"
 
 #include <string>
 #include <string>
@@ -43,7 +44,19 @@ struct Mesh
 				iss >> trash;
 				Vec3 v;
 				for (int i = 0; i < 3; i++) iss >> v.data[i];
-				vertices.push_back(v);
+				positions.push_back(v);
+			}
+			else if (line.compare(0, 3, "vn ") == 0) {
+				iss >> trash >> trash;
+				Vec3 n;
+				for (int i = 0; i < 3; i++) iss >> n.data[i];
+				normals.push_back(n);
+			}
+			else if (line.compare(0, 3, "vt ") == 0) {
+				iss >> trash >> trash;
+				Vec2 uv;
+				for (int i = 0; i < 2; i++) iss >> uv.data[i];
+				uvs.push_back(uv);
 			}
 			else if (line.compare(0, 2, "f ") == 0) {
 				Face f;
@@ -56,9 +69,25 @@ struct Mesh
 				faces.push_back(f);
 			}
 		}
+		
+		vertices.reserve(3 * faces.size());
+		for (const auto& face : faces)
+		{
+			for (const auto& vertex : face.data)
+			{
+				Vertex vtx;
+				vtx.pos = positions[vertex.x];
+				vtx.uv = uvs[vertex.y];
+				vtx.normal = normals[vertex.z];
+				vertices.push_back(vtx);
+			}
+		}
     }
 
-    std::vector<Vec3> vertices;
+	std::vector<Vertex> vertices;
+    std::vector<Vec3> positions;
+	std::vector<Vec3> normals;
+	std::vector<Vec2> uvs;
     std::vector<Face> faces;
 };
 

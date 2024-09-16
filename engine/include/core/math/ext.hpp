@@ -230,4 +230,37 @@ inline Mat4 ProjectionOrthographic(f32 right, f32 top, f32 near, f32 far)
     };
 }
 
+using Color = Vec4;
+
+inline Color ColorFromHex(u32 hex)
+{
+    return Color {
+        ((hex >> 16) & 0xFF) / 255.0f,
+        ((hex >> 8) & 0xFF) / 255.0f,
+        (hex & 0xFF) / 255.0f,
+        1.0f
+    };
+}
+
+inline Color ColorFromU8(u8 r, u8 g, u8 b, u8 a = 255)
+{
+    return Color {
+        r / 255.0f,
+        g / 255.0f,
+        b / 255.0f,
+        a / 255.0f
+    };
+}
+
+inline u32 ColorToHex(const Color& color)
+{
+
+    u32 r = static_cast<u32>(color.x * 255.0f);
+    u32 g = static_cast<u32>(color.y * 255.0f);
+    u32 b = static_cast<u32>(color.z * 255.0f);
+    u32 a = static_cast<u32>(color.w * 255.0f);
+    return (r << 24) | (g << 16) | (b << 8) | a;
+}
+
+
 }

@@ -104,8 +104,8 @@ struct Vec3
     Vec3(const Vec2& v2, f32 z) : x(v2.x), y(v2.y), z(z) {}
     Vec3(f32 x, const Vec2& v2) : x(x), y(v2.x), z(v2.y) {}
 
-    Vec2 xy() { return Vec2(x, y); }
-    Vec2 yz() { return Vec2(y, z); }
+    Vec2 xy() const { return Vec2(x, y); }
+    Vec2 yz() const { return Vec2(y, z); }
 
     f32 LengthSquared() const { return x * x + y * y + z * z; }
     f32 Length() const { return std::sqrt(LengthSquared()); }
@@ -190,8 +190,8 @@ struct Vec4
     Vec4(f32* raw) { memcpy(data, raw, sizeof(f32) * 4); }
 
     Vec4(const Vec2& v, const Vec2& u) : x(v.x), y(v.y), z(u.x), w(u.y) {}
-    Vec4(const Vec2& v, f32 z, f32 w) : x(v.x), y(v.y), z(), w(w) {}
-    Vec4(const Vec3& v3, f32 w) : x(v3.x), y(v3.y), z(v3.z), w(w) {}
+    Vec4(const Vec2& v, f32 z = 0.0f, f32 w = 0.0f) : x(v.x), y(v.y), z(), w(w) {}
+    Vec4(const Vec3& v3, f32 w = 0.0f) : x(v3.x), y(v3.y), z(v3.z), w(w) {}
 
     Vec3 Truncate() const { return Vec3(x, y, z); }
     Vec3 xyz() const { return Vec3(x, y, z); }
@@ -252,6 +252,7 @@ struct Vec4
 inline Vec4 Abs(const Vec4& v) { return v.Abs(); }
 inline bool Equal(const Vec4& a, const Vec4& b) { return a.Eq(b); }
 inline bool NotEqual(const Vec4& a, const Vec4& b) { return a.Neq(b); }
+inline Vec4 LerpVec4(const Vec4& a, const Vec4& b, f32 t) { return a + (b - a) * t; }
 
 struct Vec2i
 {

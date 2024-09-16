@@ -50,6 +50,7 @@ void Window::OnUpdate(Ref<Image> image)
             &rect, 
             SDL_MapRGB(SDL_GetWindowSurface(window)->format, 0, 0, 0)
         );
+        FrameImage(image->Data(), image->Width(), image->Height(), 0, false);
         SDL_BlitScaled(
             static_cast<SDL_Surface*>(image->SurfaceHandle()),
             nullptr, 

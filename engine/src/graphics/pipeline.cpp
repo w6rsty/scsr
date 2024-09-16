@@ -1,7 +1,8 @@
 #include "graphics/pipeline.hpp"
+#include "core/math/vector.hpp"
+#include "core/type.hpp"
+#include "graphics/obj_loader.hpp"
 #include "graphics/vertex.hpp"
-
-#include <optional>
 
 #include <Tracy.hpp>
 
@@ -11,79 +12,112 @@ namespace scsr
 Pipeline::Pipeline()
 {}
 
-std::optional<Primitive> Pipeline::VertexTransform(Ref<Image> image, Primitive& primitive)
+void Pipeline::VertexTransform(Ref<Image> image, std::span<Vertex> vtxs)
 {
     ZoneScoped;
     {
-        ZoneScopedN("Vertex Processing");
-        for (usize i = 0; i < 3; ++i)
+        ZoneScopedN("Primitive Transform");
+        for (auto& vtx : vtxs)
         {
-            Vertex& vtx = primitive[i];
-            
             // Call vertex changing function
-            Vec4 out = m_VertexChanging(vtx, vtx.varyings);
+            Vec4 out = m_VertexChanging(vtx);
 
             // Homogeneous culling
-            if (out.w == 0.0) { return std::nullopt; }
-            if (out.x < -out.w || out.x > out.w) {  return std::nullopt; }
-            if (out.y < -out.w || out.y > out.w) { return std::nullopt; }
-            if (out.z < -out.w || out.z > out.w) { return std::nullopt; }
+            if (out.w == 0.0) { return; }
+            if (out.x < -out.w || out.x > out.w) {  return; }
+            if (out.y < -out.w || out.y > out.w) { return; }
+            if (out.z < -out.w || out.z > out.w) { return; }
 
-            // save 1/w for perspective correction
             vtx.rhw = 1.0f / out.w;
-            // Perspective division
-            out *= vtx.rhw;
 
-            // viewport transformation
-            vtx.spf.x = (out.x + 1.0f) * 0.5f * (image->Width());
-            vtx.spf.y = (1.0f - out.y) * 0.5f * (image->Height());
+            vtx.pos.x = (out.x * vtx.rhw + 1.0f) * 0.5f * (image->Width() - 1);
+            vtx.pos.y = (1.0f - out.y * vtx.rhw) * 0.5f * (image->Height() - 1);
+            vtx.pos.z = out.z * vtx.rhw;
 
-            vtx.spi = Vec2i(static_cast<i32>(vtx.spf.x + 0.5f), static_cast<i32>(vtx.spf.y + 0.5f));
+            vtx.uv *= vtx.rhw;
+            vtx.normal *= vtx.rhw;
         }
     }
-    return primitive;
+
+    PrimitiveAssembly(vtxs);
 }
 
-void Pipeline::Rasterize(Ref<Image> image, const Trapezoid& trap)
+void Pipeline::PrimitiveAssembly(std::span<Vertex> vtxs)
 {
-    // Edage Walking implementation
-    ZoneScopedN("Rasterization");
+    if (vtxs.size() == 3)
+    {
+        auto trapezoids = Trapezoid::FromPrimitive(vtxs[0], vtxs[1], vtxs[2]);
+        switch (trapezoids.second)
+        {
+        case 1:
+            m_DrawBuffer.trapezoids.emplace_back(std::move(trapezoids.first.first));
+            break;
+        case 2:
+            m_DrawBuffer.trapezoids.emplace_back(std::move(trapezoids.first.first));
+            m_DrawBuffer.trapezoids.emplace_back(std::move(trapezoids.first.second));
+            break;
+        }
+    }
+    // other primitive types
+}
+
+void Pipeline::Rasterize(Ref<Image> image, const Trapezoid& trap) const
+{
+    ZoneScopedN("Draw Trapezoid");
+    i32 top = static_cast<i32>(trap.top + 0.5f);
+    i32 bottom = static_cast<i32>(trap.bottom + 0.5f);
+    for (i32 y = top; y < bottom; ++y)
+    {
+        if (y >= 0 && y < image->Height())
+        {
+            Scanline scanline = Scanline::FromTrapezoid(trap, y);
+            for (i32 x = scanline.x; x < scanline.x + scanline.width; ++x)
+            {
+                if (x >= 0 && x < image->Width())
+                {
+                    scanline.start.pos += scanline.step.pos;
+                    scanline.start.uv += scanline.step.uv;
+                    scanline.start.normal += scanline.step.normal;
+                    scanline.start.rhw += scanline.step.rhw;
+
+                    Vec2i screen_pos = scanline.start.ScreenPos();
+
+                    u32 color_u32 = ColorToHex(m_PixelShading(scanline.start));
+                    image->SetPixel(screen_pos, color_u32);
+                }
+                if (x >= image->Width()) { break; }
+            }
+        }
+        if (y >= image->Height()) { break; }
+    }
 }
 
 void Pipeline::Perform(Ref<Image> image, Mesh& mesh)
 {
     ZoneScopedN("Draw call");
 
-    DrawBuffer buffer;
     {
-        ZoneScopedN("Vertex Transformation");
+        ZoneScopedN("Buffer initialization");
+        m_DrawBuffer.trapezoids.clear();
+        m_DrawBuffer.vertices.clear();
 
-        for (auto& face : mesh.faces)
+        m_DrawBuffer.vertices = mesh.vertices;
+    }
+    std::span<Vertex> vertice_view(m_DrawBuffer.vertices);
+    {
+        ZoneScopedN("Vertex Pass");
+        for (usize i = 0; i < m_DrawBuffer.vertices.size(); i += 3)
         {
-            Primitive prim;
-            prim[0].pos = mesh.vertices.at(face[0].x);
-            prim[1].pos = mesh.vertices.at(face[1].x);
-            prim[2].pos = mesh.vertices.at(face[2].x);
-
-            auto result = VertexTransform(image, prim);
-            if (!result.has_value()) {  continue; }
-
-            auto trapezoids = Trapezoid::FromPrimitive(prim);
-            if (!trapezoids[0].has_value()) { continue; }
-
-            buffer.trapezoids.push_back(trapezoids[0].value());
-            buffer.trapezoids.push_back(trapezoids[1].value());
+            VertexTransform(image, vertice_view.subspan(i, 3));
         }
     }
-
     {
-        ZoneScopedN("Rasterization");
-        for (auto& trapezoid : buffer.trapezoids)
+        ZoneScopedN("Pixel Pass");
+        for (auto& trapezoid : m_DrawBuffer.trapezoids)
         {
             Rasterize(image, trapezoid);
         }
     }
-
     return;
 }
 
