@@ -1,4 +1,4 @@
-#include "camera.hpp"
+#include "camera_controller.hpp"
 #include "render.hpp"
 
 using namespace scsr;
@@ -9,7 +9,7 @@ int runtime(int argc, char* argv[])
 
     World()
         .RegisterObject<Window>(prop)
-        .AddPlugin(CameraPlugin)
+        .AddPlugin(CameraControllerPlugin)
         .AddPlugin(RenderPlugin)
         .Run();
 

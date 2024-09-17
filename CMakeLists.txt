@@ -21,7 +21,7 @@ if (SCSR_RT_ASSERT)
 endif()
 if (SCSR_TRACY)
     message(STATUS "Enable tracy profiling")
-    add_compile_definitions(TRACY_ENABLE)
+    # add_compile_definitions(TRACY_ENABLE)
 endif()
 
 add_subdirectory(engine)

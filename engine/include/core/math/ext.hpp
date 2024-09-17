@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/assert.hpp"
+#include "core/math/vector.hpp"
 #include "core/type.hpp"
 #include "def.hpp"
 #include "vector.hpp"
@@ -252,13 +253,18 @@ inline Color ColorFromU8(u8 r, u8 g, u8 b, u8 a = 255)
     };
 }
 
+inline u32 clamp8bit(u8&& value) {
+    value = value & -(value >= 0);
+    value = (value | -(value > 255)) & 255;
+    return std::move(value);
+}
+
 inline u32 ColorToHex(const Color& color)
 {
-
-    u32 r = static_cast<u32>(color.x * 255.0f);
-    u32 g = static_cast<u32>(color.y * 255.0f);
-    u32 b = static_cast<u32>(color.z * 255.0f);
-    u32 a = static_cast<u32>(color.w * 255.0f);
+    u32 r = clamp8bit(static_cast<u8>(color.x * 255.0f));
+    u32 g = clamp8bit(static_cast<u8>(color.y * 255.0f));
+    u32 b = clamp8bit(static_cast<u8>(color.z * 255.0f));
+    u32 a = clamp8bit(static_cast<u8>(color.w * 255.0f));
     return (r << 24) | (g << 16) | (b << 8) | a;
 }
 

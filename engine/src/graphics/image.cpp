@@ -21,7 +21,8 @@ Image::~Image()
 void Image::Clear()
 {
     ZoneScopedN("Image Clear");
-    memset(m_Data, 0, m_Prop.width * m_Prop.height * 4);
+    std::memset(m_Data, 0, m_Prop.width * m_Prop.height * 4);
+    std::fill(m_DepthBuffer, m_DepthBuffer + m_Prop.width * m_Prop.height, 1.0f);
 }
 
 void Image::Resize(ImageProp prop)
@@ -74,13 +75,32 @@ void Image::SetLine(Vec2i p0, Vec2i p1, u32 color)
     SetLine(p0.x, p0.y, p1.x, p1.y, color);
 }
 
-i32 Image::Width() const { return m_Prop.width; }
+void Image::SetDepth(Vec2i p, f32 depth)
+{
+    usize index = p.y * m_Prop.width + p.x;
+    m_DepthBuffer[index] = depth;
+}
 
-i32 Image::Height() const { return m_Prop.height; }
+f32 Image::ReadDepth(Vec2i p) const
+{
+    usize index = p.y * m_Prop.width + p.x;
+    return m_DepthBuffer[index];
+}
 
-u32* Image::Data() { return m_Data; }
+bool Image::TestDepth(Vec2i p, f32 depth)
+{
+    usize index = p.y * m_Prop.width + p.x;
+    return m_DepthBuffer[index] > depth;
+}
 
-void* Image::SurfaceHandle() const { return m_Surface; }
+void Image::TestDepthAndSetPixel(Vec2i p, f32 depth, u32 color)
+{
+    if (TestDepth(p, depth))
+    {
+        SetPixel(p, color);
+        SetDepth(p, depth);
+    }
+}
 
 void Image::Create()
 {
@@ -90,6 +110,9 @@ void Image::Create()
         m_Prop.width, m_Prop.height, 32, m_Prop.width * 4,
         0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF
     );
+
+    m_DepthBuffer = new f32[m_Prop.width * m_Prop.height];
+    std::fill(m_DepthBuffer, m_DepthBuffer + m_Prop.width * m_Prop.height, 1.0f);
 }
 
 void Image::Release()

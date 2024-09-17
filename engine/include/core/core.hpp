@@ -16,4 +16,8 @@
 #include "graphics/window.hpp"      // IWYU pragma: export
 #include "graphics/pipeline.hpp"    // IWYU pragma: export
 #include "graphics/image.hpp"       // IWYU pragma: export 
+#include "graphics/obj_loader.hpp"  // IWYU pragma: export
+#include "graphics/vertex.hpp"      // IWYU pragma: export
+#include "graphics/swapchain.hpp"   // IWYU pragma: export
+#include "graphics/camera.hpp"      // IWYU pragma: export
 

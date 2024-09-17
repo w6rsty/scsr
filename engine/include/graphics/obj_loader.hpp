@@ -76,7 +76,7 @@ struct Mesh
 			for (const auto& vertex : face.data)
 			{
 				Vertex vtx;
-				vtx.pos = positions[vertex.x];
+				vtx.pos = Vec4(positions[vertex.x], 1.0f);
 				vtx.uv = uvs[vertex.y];
 				vtx.normal = normals[vertex.z];
 				vertices.push_back(vtx);

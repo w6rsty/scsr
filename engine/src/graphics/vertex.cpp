@@ -11,7 +11,7 @@ Vertex FromInterpolation(const Vertex& v1, const Vertex& v2, f32 t)
     ZoneScopedN("Vertex interpolation");
 
     Vertex vtx;
-    vtx.pos = Lerp(v1.pos, v2.pos, t);
+    vtx.pos = LerpVec4(v1.pos, v2.pos, t);
     vtx.uv = Lerp(v1.uv, v2.uv, t);
     vtx.normal = Lerp(v1.normal, v2.normal, t);
     vtx.rhw = Lerp(v1.rhw, v2.rhw, t);
@@ -29,7 +29,6 @@ std::pair<std::pair<Trapezoid, Trapezoid>, u32> Trapezoid::FromPrimitive(Vertex&
     ZoneScopedN("Trapezoid generation");
 
     /// Sort vertices by y, v1.y < v2.y < v3.y
-    Vertex& temp = v1;
     if (v1.pos.y > v2.pos.y) { std::swap(v1, v2); }
     if (v1.pos.y > v3.pos.y) { std::swap(v1, v3); }
     if (v2.pos.y > v3.pos.y) { std::swap(v2, v3); }
@@ -49,7 +48,8 @@ std::pair<std::pair<Trapezoid, Trapezoid>, u32> Trapezoid::FromPrimitive(Vertex&
     if (v1.pos.y == v2.pos.y)
     {
         /// Make v1 is the left
-        if (v1.pos.x > v2.pos.x) { std::swap(v1, v2); }
+        // if (v1.pos.x > v2.pos.x) { std::swap(v1, v2); }
+        if (v1.pos.x > v2.pos.x) { return {{}, 0u}; }
         trap1.top = v1.pos.y;
         trap1.bottom = v3.pos.y;
         trap1.left.v1  = &v1;
@@ -64,7 +64,8 @@ std::pair<std::pair<Trapezoid, Trapezoid>, u32> Trapezoid::FromPrimitive(Vertex&
     if (v2.pos.y == v3.pos.y)
     {
         /// Make v2 is the left
-        if (v2.pos.x > v3.pos.x) { std::swap(v2, v3); }
+        // if (v2.pos.x > v3.pos.x) { std::swap(v2, v3); }
+        if (v2.pos.x > v3.pos.x) { return {{}, 0u}; }
 
         trap1.top = v1.pos.y;
         trap1.bottom = v3.pos.y;

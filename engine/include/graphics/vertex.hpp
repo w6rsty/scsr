@@ -15,7 +15,7 @@ public:
     static Vertex FromInterpolation(const Vertex& v1, const Vertex& v2, f32 t);
     Vec2i ScreenPos() const;
 
-    Vec3 pos;
+    Vec4 pos;
     Vec2 uv;
     Vec3 normal;
     f32 rhw;

@@ -191,7 +191,7 @@ struct Vec4
 
     Vec4(const Vec2& v, const Vec2& u) : x(v.x), y(v.y), z(u.x), w(u.y) {}
     Vec4(const Vec2& v, f32 z = 0.0f, f32 w = 0.0f) : x(v.x), y(v.y), z(), w(w) {}
-    Vec4(const Vec3& v3, f32 w = 0.0f) : x(v3.x), y(v3.y), z(v3.z), w(w) {}
+    Vec4(const Vec3& v3, f32 w) : x(v3.x), y(v3.y), z(v3.z), w(w) {}
 
     Vec3 Truncate() const { return Vec3(x, y, z); }
     Vec3 xyz() const { return Vec3(x, y, z); }

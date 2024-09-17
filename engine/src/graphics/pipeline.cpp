@@ -12,34 +12,43 @@ namespace scsr
 Pipeline::Pipeline()
 {}
 
-void Pipeline::VertexTransform(Ref<Image> image, std::span<Vertex> vtxs)
+PrimitiveResult Pipeline::PrimitiveGeneration(Ref<Image> image, std::span<Vertex> vtxs)
 {
     ZoneScoped;
+    for (auto& vtx : vtxs)
     {
-        ZoneScopedN("Primitive Transform");
-        for (auto& vtx : vtxs)
-        {
-            // Call vertex changing function
-            Vec4 out = m_VertexChanging(vtx);
+        vtx.pos = m_VertexChanging(vtx);
 
-            // Homogeneous culling
-            if (out.w == 0.0) { return; }
-            if (out.x < -out.w || out.x > out.w) {  return; }
-            if (out.y < -out.w || out.y > out.w) { return; }
-            if (out.z < -out.w || out.z > out.w) { return; }
+        // Homogeneous culling
+        if (vtx.pos.w <= 1.0f) { return PrimitiveResult::Discard; }
+        if (vtx.pos.x <= -vtx.pos.w || vtx.pos.x >= vtx.pos.w) {  return PrimitiveResult::Discard; }
+        if (vtx.pos.y <= -vtx.pos.w || vtx.pos.y >= vtx.pos.w) { return PrimitiveResult::Discard; }
+        if (vtx.pos.z <= -vtx.pos.w || vtx.pos.z >= vtx.pos.w) { return PrimitiveResult::Discard; }
 
-            vtx.rhw = 1.0f / out.w;
+        vtx.rhw = 1.0f / vtx.pos.w;
+        vtx.pos.x *= vtx.rhw;
+        vtx.pos.y *= vtx.rhw;
+        vtx.pos.z *= vtx.rhw;
+        vtx.pos.w = 1.0f;
 
-            vtx.pos.x = (out.x * vtx.rhw + 1.0f) * 0.5f * (image->Width() - 1);
-            vtx.pos.y = (1.0f - out.y * vtx.rhw) * 0.5f * (image->Height() - 1);
-            vtx.pos.z = out.z * vtx.rhw;
-
-            vtx.uv *= vtx.rhw;
-            vtx.normal *= vtx.rhw;
-        }
+        // viewport
+        vtx.pos.x = (vtx.pos.x + 1.0f) * 0.5f * image->Width();
+        vtx.pos.y = (1.0f - vtx.pos.y) * 0.5f * image->Height();
+    }
+    // Face culling
+    if (m_State.cullMode != FaceCullMode::None)
+    {
+        Vec3 v1 = vtxs[0].pos.xyz();
+        Vec3 v2 = vtxs[1].pos.xyz();
+        Vec3 v3 = vtxs[2].pos.xyz();
+        Vec3 normal = Cross(v2 - v1, v3 - v1);
+        f32 dot = Dot(normal, m_Camera->GetFront());
+        if (m_State.cullMode == FaceCullMode::CCW && dot < 0.0f) { return PrimitiveResult::Discard; }
+        if (m_State.cullMode == FaceCullMode::CW && dot > 0.0f) { return PrimitiveResult::Discard; }
     }
 
     PrimitiveAssembly(vtxs);
+    return PrimitiveResult::Keep;
 }
 
 void Pipeline::PrimitiveAssembly(std::span<Vertex> vtxs)
@@ -80,10 +89,11 @@ void Pipeline::Rasterize(Ref<Image> image, const Trapezoid& trap) const
                     scanline.start.normal += scanline.step.normal;
                     scanline.start.rhw += scanline.step.rhw;
 
-                    Vec2i screen_pos = scanline.start.ScreenPos();
-
-                    u32 color_u32 = ColorToHex(m_PixelShading(scanline.start));
-                    image->SetPixel(screen_pos, color_u32);
+                    image->TestDepthAndSetPixel(
+                        scanline.start.ScreenPos(),
+                        scanline.start.pos.z,
+                        ColorToHex(m_PixelShading(scanline.start))    
+                    );
                 }
                 if (x >= image->Width()) { break; }
             }
@@ -108,7 +118,14 @@ void Pipeline::Perform(Ref<Image> image, Mesh& mesh)
         ZoneScopedN("Vertex Pass");
         for (usize i = 0; i < m_DrawBuffer.vertices.size(); i += 3)
         {
-            VertexTransform(image, vertice_view.subspan(i, 3));
+            switch(PrimitiveGeneration(image, vertice_view.subspan(i, 3)))
+            {
+            case PrimitiveResult::Discard:
+            case PrimitiveResult::Keep:
+                break;
+            case PrimitiveResult::Split:
+                break;
+            }
         }
     }
     {
